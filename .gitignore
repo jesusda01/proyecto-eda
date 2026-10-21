@@ -1,0 +1,8 @@
+# Entorno virtual
+.venv/
+__pycache__/
+.DS_Store
+
+# Archivos de datos pesados (CSV original y Parquets grandes)
+2019-Nov.csv
+data/
