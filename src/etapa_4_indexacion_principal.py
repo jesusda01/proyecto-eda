@@ -2,12 +2,12 @@ class BPlusTreeNode:
   """Nodo constitutivo de un Árbol B+ para indexación en disco."""
 
   def __init__(self, leaf=False):
-    self.leaf = leaf  # Booleano: True si es nodo hoja, False si es nodo interno
+    self.leaf = leaf  # True si es nodo hoja, False si es nodo interno
     self.keys = []  # Lista de claves indexadas
-    self.children = []  # Lista de punteros a hijos o registros de datos
-    self.next = (
-        None  # Puntero al nodo hermano siguiente (optimiza escaneos por rango)
-    )
+    self.children = (
+        []
+    )  # Punteros a hijos (interno) o valores asociados (hoja)
+    self.next = None  # Puntero al siguiente nodo hoja (para escaneos por rango)
 
 
 class IndexacionPrincipalBPlusTree:
@@ -17,14 +17,14 @@ class IndexacionPrincipalBPlusTree:
   """
 
   def __init__(self, t=3):
-    self.root = BPlusTreeNode(leaf=True)  # Raíz inicial del árbol (hoja)
+    self.root = BPlusTreeNode(leaf=True)  # Raíz inicial configurada como hoja
     self.t = t  # Grado mínimo del árbol B+
 
   def insert(self, key, value):
     root = self.root
-    # Si la raíz se llena, se divide (split) incrementando la altura del árbol
+    # Si la raíz se llena, se divide incrementando la altura del árbol
     if len(root.keys) >= (2 * self.t - 1):
-      temp = BPlusTreeNode()
+      temp = BPlusTreeNode(leaf=False)
       self.root = temp
       temp.children.insert(0, root)
       self._split_child(temp, 0, root)
@@ -35,14 +35,15 @@ class IndexacionPrincipalBPlusTree:
   def _insert_non_full(self, node, key, value):
     i = len(node.keys) - 1
     if node.leaf:
-      node.keys.append(None)
-      node.children.append(None)
-      # Desplaza las claves mayores para ubicar la nueva clave en orden ascendente
-      while i >= 0 and key < node.keys[i][0]:
-        node.keys[i + 1] = node.keys[i]
-        node.children[i + 1] = node.children[i]
-        i -= 1
-      node.keys[i + 1] = (key, value)
+      # Búsqueda de la posición correcta para mantener el orden ascendente
+      while i >= 0:
+        k_val = node.keys[i][0] if isinstance(node.keys[i], tuple) else node.keys[i]
+        if key < k_val:
+          i -= 1
+        else:
+          break
+      # Inserción segura usando .insert() en lugar de asignación directa por índice
+      node.keys.insert(i + 1, (key, value))
     else:
       while i >= 0 and key < node.keys[i]:
         i -= 1
@@ -57,10 +58,23 @@ class IndexacionPrincipalBPlusTree:
     t = self.t
     z = BPlusTreeNode(leaf=child.leaf)
     midt = t - 1
+
+    # Extrae de forma segura la clave media para ascenderla al nodo padre
+    promoted_key = (
+        child.keys[midt][0] if isinstance(child.keys[midt], tuple) else child.keys[midt]
+    )
+
     parent.children.insert(i + 1, z)
-    parent.keys.insert(i, child.keys[midt])
+    parent.keys.insert(i, promoted_key)
+
+    # Divide las claves entre el nodo actual y el nuevo hermano (z)
     z.keys = child.keys[midt + 1 :]
     child.keys = child.keys[: midt + 1]
+
     if not child.leaf:
       z.children = child.children[t:]
       child.children = child.children[:t]
+    else:
+      # Enlaza los nodos hoja para optimizar futuros escaneos por rango
+      z.next = child.next
+      child.next = z

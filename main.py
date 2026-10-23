@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 from src.convert_to_parquet import process_csv_to_parquet
@@ -18,108 +19,241 @@ from src.etapa_9_servicio_visualizacion import TopKAnalytics, TrieAutocompletado
 CSV_PATH = '2019-Nov.csv'
 
 
-def run_pipeline_tests():
+def run_integrated_pipeline():
   print('========================================================')
-  print('--- PASO 1: VERIFICACIÓN DE DATASETS PARQUET ---')
+  print('--- PIPELINE INTEGRADO DE 10 ETAPAS (FLUJO SECUENCIAL) ---')
   print('========================================================')
+
   target_file = 'data/ecommerce_1K.parquet'
   if not os.path.exists(target_file) or os.path.getsize(target_file) == 0:
     process_csv_to_parquet(csv_input_path=CSV_PATH)
   else:
-    print("✅ Datasets Parquet válidos listos en la carpeta 'data/'.")
+    print("✅ Dataset Parquet base listo en la carpeta 'data/'.")
 
   df_1k = pd.read_parquet(target_file)
 
-  # ETAPA 0
-  print('\n--- ETAPA 0: Ingesta y Buffer FIFO ---')
+  # -------------------------------------------------------------------------
+  # ETAPA 0: Ingesta y Buffer (Stream de entrada)
+  # -------------------------------------------------------------------------
+  print('\n[ETAPA 0] Inyectando stream de eventos al Buffer FIFO...')
   buffer = IngestaBufferFIFO(capacity=5000)
   for _, row in df_1k.iterrows():
     buffer.enqueue(row.to_dict())
-  print(f'✅ Eventos en Buffer: {buffer.size()}')
-  lote = [buffer.dequeue() for _ in range(50)]
+  print(f'✅ Eventos totales en Buffer FIFO: {buffer.size()}')
 
-  # ETAPA 1
-  print('\n--- ETAPA 1: Preprocesamiento (Timsort + Búsqueda Binaria) ---')
+  # Extraemos un lote masivo del buffer para que inicie su viaje por el pipeline
+  lote_crudo = [buffer.dequeue() for _ in range(100)]
+
+  # -------------------------------------------------------------------------
+  # ETAPA 1: Preprocesamiento por lotes (Limpieza y Deduplicación)
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 1] Limpiando y deduplicando lote con Timsort + Búsqueda'
+      ' Binaria...'
+  )
   preproc = PreprocesamientoLotes()
-  lote_dedup = preproc.deduplicate_batch(lote)
+  lote_dedup = preproc.deduplicate_batch(lote_crudo)
   lote_ordenado = preproc.sort_batch(lote_dedup, key='event_time')
-  print(f'✅ Lote procesado y ordenado: {len(lote_ordenado)} eventos.')
+  print(
+      f'✅ Lote limpio y ordenado: {len(lote_ordenado)} eventos listos para'
+      ' priorizar.'
+  )
 
-  # ETAPA 2
-  print('\n--- ETAPA 2: Cola de Prioridades (MinHeap) ---')
-  cola = ColaPrioridadesHeap()
+  # -------------------------------------------------------------------------
+  # ETAPA 2: Cola con Prioridades (MinHeap)
+  # -------------------------------------------------------------------------
+  print('\n[ETAPA 2] Encolando eventos limpios en la MinHeap de prioridades...')
+  cola_prioridad = ColaPrioridadesHeap()
   for ev in lote_ordenado:
-    cola.push(ev)
-  print(f'✅ Eventos en MinHeap de prioridades: {cola.size()}')
+    # Asignamos una prioridad sintética basada en el tipo de evento para la demo
+    ev['priority'] = 1 if ev.get('event_type') == 'purchase' else 3
+    cola_prioridad.push(ev)
+  print(f'✅ Eventos en Cola de Prioridades: {cola_prioridad.size()}')
 
-  # ETAPA 3
-  print('\n--- ETAPA 3: Almacenamiento, Lookup y Caché LRU ---')
-  storage_cache = AlmacenamientoLookupCache(capacity=10)
-  for ev in lote_ordenado:
+  # Extraemos los eventos ordenados por su prioridad de negocio
+  lote_priorizado = [cola_prioridad.pop() for _ in range(len(lote_ordenado))]
+
+  # -------------------------------------------------------------------------
+  # ETAPA 3: Almacenamiento, Lookup y Caché LRU
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 3] Almacenando eventos priorizados y evaluando Caché LRU de'
+      ' consultas...'
+  )
+  storage_cache = AlmacenamientoLookupCache(capacity=20)
+  for ev in lote_priorizado:
     storage_cache.put_storage(ev['event_id'], ev)
-  sample_id = lote_ordenado[0]['event_id']
-  data_res, status = storage_cache.get_from_cache_or_storage(sample_id)
-  print(f'✅ Lookup ID {sample_id} -> Estado: {status}')
 
-  # ETAPA 4
-  print('\n--- ETAPA 4: Indexación Principal (Árbol B+) ---')
-  b_plus = IndexacionPrincipalBPlusTree()
-  b_plus.insert(10050, {'desc': 'Indice de prueba disco'})
-  print('✅ Clave insertada en Árbol B+ con éxito.')
+  # Probamos el flujo de caché con un evento real que acaba de pasar por el pipeline
+  sample_event = lote_priorizado[0]
+  sample_id = sample_event['event_id']
+  _, status1 = storage_cache.get_from_cache_or_storage(
+      sample_id
+  )  # Primer acceso (MISS)
+  _, status2 = storage_cache.get_from_cache_or_storage(
+      sample_id
+  )  # Segundo acceso (HIT)
+  print(
+      f'✅ Evento real ID {sample_id} consultado -> 1er acceso: {status1}, 2do'
+      f' acceso (Caché): {status2}'
+  )
 
-  # ETAPA 5
-  print('\n--- ETAPA 5: Índice Multidimensional & KNN ---')
-  points = [(row['price'], row['user_id']) for _, row in df_1k.head(20).iterrows()]
-  data_pts = list(df_1k.head(20)['event_id'])
-  kd_tree = IndiceMultidimensionalKDTree(points, data_pts)
-  knn_res = kd_tree.knn_exact_baseline([100.0, 50000], points, data_pts, k_neighbors=2)
-  print(f'✅ KNN Baseline ejecutado. Vecinos encontrados: {knn_res}')
+  # -------------------------------------------------------------------------
+  # ETAPA 4: Indexación Principal (Árbol B+ en disco)
+  # -------------------------------------------------------------------------
+  print('\n[ETAPA 4] Indexando IDs de los eventos procesados en Árbol B+...')
+  b_plus = IndexacionPrincipalBPlusTree(t=2)
+  for ev in lote_priorizado[:30]:
+    # Indexamos usando el event_id numérico o hash como clave de disco
+    numeric_key = abs(hash(ev['event_id'])) % 100000
+    b_plus.insert(numeric_key, {'event_type': ev['event_type']})
+  print(
+      '✅ Índices de eventos en disco actualizados correctamente en el Árbol'
+      ' B+.'
+  )
 
-  # ETAPA 6 [FIJA]
-  print('\n--- ETAPA 6 [FIJA]: Filtrado Probabilístico ---')
+  # -------------------------------------------------------------------------
+  # ETAPA 5: Índice Multidimensional y KNN Exacto (KD-Tree)
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 5] Alimentando KD-Tree con atributos numéricos (precio, user_id)'
+      ' de los eventos...'
+  )
+  points = [
+      (float(ev['price']), int(ev['user_id']))
+      for ev in lote_priorizado
+      if ev.get('price') is not None
+  ]
+  data_ids = [ev['event_id'] for ev in lote_priorizado if ev.get('price')]
+
+  if points:
+    kd_tree = IndiceMultidimensionalKDTree(points, data_ids)
+    query_pt = points[0]  # Tomamos el primer punto del stream como consulta
+    knn_res = kd_tree.knn_exact_baseline(
+        query_pt, points, data_ids, k_neighbors=2
+    )
+    print(
+        f'✅ Vecinos más cercanos (KNN Baseline) basados en el stream real:'
+        f' {knn_res}'
+    )
+
+  # -------------------------------------------------------------------------
+  # ETAPA 6 [FIJA]: Filtrado Probabilístico (Bloom Filter & Count-Min Sketch)
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 6] Filtrando duplicados y estimando frecuencias de productos'
+      ' con estructuras probabilísticas...'
+  )
   bloom = BloomFilter(capacity=1000)
   cms = CountMinSketch()
-  bloom.add('prod_12345')
-  cms.add('prod_12345')
-  print(f'✅ ¿"prod_12345" en Bloom Filter?: {"prod_12345" in bloom}')
-  print(f'✅ Frecuencia estimada (CMS): {cms.estimate_frequency("prod_12345")}')
 
-  # ETAPA 7 [FIJA]
+  for ev in lote_priorizado:
+    prod_id = str(ev.get('product_id'))
+    bloom.add(prod_id)
+    cms.add(prod_id)
+
+  test_prod = str(lote_priorizado[0].get('product_id'))
   print(
-      '\n--- ETAPA 7 [FIJA]: Similitud Aproximada (MinHash+LSH y HNSW) ---'
+      f'✅ ¿Producto {test_prod} detectado en Bloom Filter?:'
+      f' {test_prod in bloom}'
   )
-  lsh_sim = MinHashLSHSimulator()
-  sig1 = lsh_sim.compute_signature([101, 102, 103])
-  sig2 = lsh_sim.compute_signature([101, 102, 999])
-  jaccard_est = lsh_sim.jaccard_similarity_estimate(sig1, sig2)
-  print(f'✅ Similitud de Jaccard estimada (MinHash): {jaccard_est:.2f}')
+  print(
+      f'✅ Frecuencia estimada en streaming (Count-Min Sketch) para'
+      f' {test_prod}: {cms.estimate_frequency(test_prod)}'
+  )
+
+  # -------------------------------------------------------------------------
+  # ETAPA 7 [FIJA]: Similitud Aproximada (MinHash+LSH y HNSW)
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 7] Calculando similitud de canastas (MinHash) y vectores'
+      ' (HNSW) sobre los datos del stream...'
+  )
+  lsh_sim = MinHashLSHSimulator(num_perm=32)
+  # Agrupamos productos por usuario simulando canastas reales del stream
+  user_baskets = {}
+  for ev in lote_priorizado:
+    uid = ev['user_id']
+    user_baskets.setdefault(uid, set()).add(ev['product_id'])
+
+  u_ids = list(user_baskets.keys())
+  if len(u_ids) >= 2:
+    sig1 = lsh_sim.compute_signature(user_baskets[u_ids[0]])
+    sig2 = lsh_sim.compute_signature(user_baskets[u_ids[1]])
+    jaccard_est = lsh_sim.jaccard_similarity_estimate(sig1, sig2)
+    print(
+        f'✅ Similitud de Jaccard estimada entre canastas de usuarios'
+        f' {u_ids[0]} y {u_ids[1]}: {jaccard_est:.2f}'
+    )
 
   hnsw = HNSWApproximateSearch()
-  hnsw.add_vector('prod_A', [0.12, 0.45])
-  hnsw.add_vector('prod_B', [0.15, 0.42])
-  neighbors = hnsw.search_knn([0.13, 0.44], k=1)
-  print(f'✅ Vecino más cercano por HNSW: {neighbors}')
+  for i, ev in enumerate(lote_priorizado[:15]):
+    # Simulamos embeddings vectoriales a partir del precio y categoría del evento real
+    vec = [float(ev.get('price', 0)) / 100.0, float(i) / 15.0]
+    hnsw.add_vector(ev['event_id'], vec)
 
-  # ETAPA 8 [FIJA]
-  print('\n--- ETAPA 8 [FIJA]: Grafo de Dominio & PageRank ---')
+  if lote_priorizado:
+    query_vec = [float(lote_priorizado[0].get('price', 0)) / 100.0, 0.0]
+    neighbors_hnsw = hnsw.search_knn(query_vec, k=1)
+    print(
+        f'✅ Búsqueda ANN (HNSW) sobre vectores del catálogo real:adores'
+        f' {neighbors_hnsw}'
+    )
+
+  # -------------------------------------------------------------------------
+  # ETAPA 8 [FIJA]: Grafo de Dominio (PageRank y Comunidades)
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 8] Construyendo grafo de dominio (Usuario -> Producto) y'
+      ' ejecutando PageRank / Louvain...'
+  )
   grafo = GrafoDominioRed()
-  grafo.add_edge('user_1', 'prod_A', weight=2.0)
-  grafo.add_edge('prod_A', 'prod_B', weight=1.5)
-  pr = grafo.compute_pagerank()
-  print(f'✅ PageRank calculado para nodos: {list(pr.keys())}')
+  for ev in lote_priorizado:
+    u_node = f"user_{ev['user_id']}"
+    p_node = f"prod_{ev['product_id']}"
+    grafo.add_edge(u_node, p_node, weight=1.0)
 
-  # ETAPA 9
-  print('\n--- ETAPA 9: Servicio y Visualización (Trie & Top-K) ---')
+  pagerank_res = grafo.compute_pagerank()
+  top_nodes = sorted(pagerank_res.items(), key=lambda x: x[1], reverse=True)[:3]
+  print(f'✅ Top 3 nodos más influyentes de la red (PageRank): {top_nodes}')
+
+  communities = grafo.detect_communities()
+  print(
+      f'✅ Comunidades detectadas en el grafo transaccional:'
+      f' {len(communities)} clústeres'
+  )
+
+  # -------------------------------------------------------------------------
+  # ETAPA 9: Servicio y Visualización (Trie & Top-K Analytics)
+  # -------------------------------------------------------------------------
+  print(
+      '\n[ETAPA 9] Alimentando motor de búsqueda (Trie) y analíticas de'
+      ' popularidad (Top-K Heap)...'
+  )
   trie = TrieAutocompletado()
-  trie.insert('laptop gamer')
-  trie.insert('laptop lenovo')
-  print(f'✅ Autocompletado para "lap": {trie.search_prefix("lap")}')
+  top_k = TopKAnalytics(k=3)
+
+  for ev in lote_priorizado:
+    # Alimentamos el Top-K con los productos más populares del stream
+    prod_id_str = str(ev['product_id'])
+    top_k.add_item(prod_id_str)
+    # Simulamos inserción de términos de búsqueda en el Trie
+    trie.insert(f"producto {prod_id_str}")
 
   print(
-      '\n🎉 ¡PIPELINE INTEGRADAMENTE EJECUTADO DESDE LA ETAPA 0 HASTA LA 9'
-      ' CON EXITO Y RIGOR TEÓRICO! 🎉'
+      f'✅ Productos más populares del stream (Top-K Heap):'
+      f' {top_k.get_top_k()}'
+  )
+  print(
+      f'✅ Sugerencias de autocompletado (Trie) para prefijo "pro":'
+      f' {trie.search_prefix("pro")[:3]}'
+  )
+
+  print(
+      '\n🎉 ¡PIPELINE DE 10 ETAPAS EJECUTADO DE PUNTA A PUNTA CON DATOS'
+      ' REALES DEL STREAM! 🎉'
   )
 
 
 if __name__ == '__main__':
-  run_pipeline_tests()
+  run_integrated_pipeline()
