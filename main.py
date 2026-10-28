@@ -26,7 +26,7 @@ def etapa_0_ingesta(target_file):
         buffer.enqueue(row.to_dict())
     print(f'✅ Eventos totales en Buffer FIFO: {buffer.size()}')
     # Retorna lote crudo inicial
-    return [buffer.dequeue() for _ in range(100)]
+    return [buffer.dequeue() for _ in range(buffer.size())]
 
 
 def etapa_1_preprocesamiento(lote_crudo):
@@ -51,7 +51,7 @@ def etapa_2_priorizacion(lote_ordenado):
 
 def etapa_3_almacenamiento(lote_priorizado):
     print('\n[ETAPA 3] Almacenando eventos priorizados y evaluando Caché LRU...')
-    storage_cache = AlmacenamientoLookupCache(capacity=50)
+    storage_cache = AlmacenamientoLookupCache(capacity=5000)
     for ev in lote_priorizado:
         storage_cache.put_storage(ev['event_id'], ev)
     
