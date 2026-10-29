@@ -15,7 +15,7 @@ class IngestaBufferFIFO:
   def __init__(self, capacity=1_000_000):
     # Inicializa el buffer con una capacidad máxima fija para evitar desbordamiento de RAM
     self.capacity = capacity
-    self.buffer = deque()
+    self.buffer = deque(maxlen=capacity)
 
   def enqueue(self, event):
     # Inserta el evento entrante al final de la cola en tiempo O(1)
