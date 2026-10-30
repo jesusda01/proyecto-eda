@@ -1,6 +1,6 @@
 import mmh3
 
-
+# Se eligio MinHash+LSH y HNSW 
 class MinHashLSHSimulator:
     """Etapa 7 (Opción A): MinHash + LSH para similitud de Jaccard en canastas."""
 
