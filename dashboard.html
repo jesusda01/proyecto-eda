@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+  <title>EDA · Flujo en vivo</title
+  ><link rel="stylesheet" href="/dashboard.css" />
+
+  <header>
+    <div>
+      <div class="eyebrow">ESTRUCTURAS DE DATOS Y ALGORITMOS</div>
+      <h1>El pipeline, por dentro.</h1>
+      <p>
+        Ejecución real de <code>main.py</code> · dataset de 1K · un lote de 100
+        eventos
+      </p>
+    </div>
+    <div class="toolbar">
+      <label class="muted"
+        >Pausa visual
+        <select id="delay">
+          <option value="0" selected>Sin pausa</option>
+          <option value="0.8">0,8 s / etapa</option>
+          <option value="2">2 s / etapa</option>
+        </select></label
+      ><button class="primary" id="run">Ejecutar pipeline</button>
+    </div>
+  </header>
+  <div class="toolbar">
+    <span id="status">Esperando ejecución</span
+    ><span class="muted" id="progress">0 / 10 etapas</span>
+  </div>
+  <div class="layout">
+    <section class="panel map">
+      <svg id="edges" viewBox="0 0 1000 625" preserveAspectRatio="none"></svg>
+      <div class="nodes" id="nodes"></div>
+      <div class="legend">
+        <span>● Verde: ejecución activa</span
+        ><span>— Línea: entrada de datos</span>
+      </div>
+    </section>
+    <aside class="detail">
+      <section class="panel">
+        <div class="eyebrow" id="number">INSPECCIONAR</div>
+        <h2 id="title">Selecciona una etapa</h2>
+        <p id="description"></p>
+        <p class="muted" id="timing"></p>
+        <div class="tabs">
+          <button id="input">Entrada</button
+          ><button id="output">Resultado</button>
+        </div>
+        <pre id="data">Ejecuta el pipeline para ver datos reales.</pre>
+      </section>
+      <p class="notice">
+        Las etapas 3–9 reciben el lote priorizado. Las líneas muestran esa
+        dependencia; el orden de ejecución sigue siendo 0 → 9. Las partículas
+        señalan la etapa activa, no eventos individuales.
+      </p>
+      <section class="panel">
+        <h2>Consola en vivo</h2>
+        <pre id="logs">Sin actividad.</pre>
+      </section>
+    </aside>
+  </div>
+  <script>
+    const stages = [
+      [
+        "Ingesta y buffer",
+        "FIFO · microlotes",
+        "Lee todos los eventos por lotes. El buffer entrega cada lote completo y queda vacío. Los índices y contadores permanecen entre lotes.",
+      ],
+      [
+        "Validar y deduplicar",
+        "Timsort + búsqueda binaria",
+        "Valida campos y fechas, elimina IDs repetidos dentro y entre lotes con historial persistente. Los IDs antiguos truncados se migran al leer sin modificar el archivo.",
+      ],
+      [
+        "Priorizar eventos",
+        "Heap estable",
+        "Alertas de pago primero; después órdenes express, estándar y programadas. El heap se vacía al entregar el lote priorizado.",
+      ],
+      [
+        "Guardar y consultar",
+        "Hash + LRU + SQLite",
+        "Persiste eventos en disco y conserva una tabla reciente en RAM. Las actualizaciones invalidan la caché para no devolver datos antiguos.",
+      ],
+      [
+        "Índice por precio",
+        "B+ propio · páginas en disco",
+        "Inserta productos con su precio de referencia y consulta rangos. SQLite almacena páginas; las divisiones, búsquedas y hojas enlazadas pertenecen al B+ propio.",
+      ],
+      [
+        "Vecinos exactos",
+        "KD-Tree con poda",
+        "Compara atributos normalizados de productos y consulta el árbol. Muestra también la referencia exacta, excluyendo el propio producto.",
+      ],
+      [
+        "Revisar actividad",
+        "Bloom + CMS + ventana",
+        "Cuenta intentos por cuenta durante 300 segundos. Verifica pertenencia y frecuencia exactas antes de marcar revisión. Los eventos bajo revisión no alimentan recomendaciones.",
+      ],
+      [
+        "Buscar similitud",
+        "MinHash + LSH · HNSW real",
+        "LSH recupera canastas candidatas mediante bandas; HNSW navega capas de vecinos. Los candidatos y la comparación exacta se muestran por separado.",
+      ],
+      [
+        "Analizar co-compra",
+        "Productos · PageRank · Louvain",
+        "Conecta productos de órdenes explícitas y acumula pesos. Las órdenes del escenario son simuladas, no inferidas como reales a partir de sesiones.",
+      ],
+      [
+        "Servicio y resultados",
+        "Ranking · Trie · consultas",
+        "Combina rango, KNN, ANN, canastas y co-compra para explicar recomendaciones. Muestra alertas verificadas y popularidad por compras aceptadas.",
+      ],
+    ];
+    const positions = [
+      [0, 42],
+      [22, 42],
+      [44, 42],
+      [74, 0],
+      [74, 14.5],
+      [74, 29],
+      [74, 43.5],
+      [74, 58],
+      [74, 72.5],
+      [74, 87],
+    ];
+    let selected = 0,
+      mode = "output",
+      state = { stages: {} },
+      previousActive = null,
+      connected = true,
+      polling = false;
+    const nodes = document.getElementById("nodes"),
+      svg = document.getElementById("edges");
+    const stopButton = document.createElement("button");
+    stopButton.id = "stop";
+    stopButton.textContent = "Detener";
+    stopButton.disabled = true;
+    stopButton.style.borderColor = "#a65b68";
+    stopButton.style.color = "#ffacb9";
+    document.getElementById("run").after(stopButton);
+    stopButton.onclick = async () => {
+      stopButton.disabled = true;
+      try {
+        const response = await fetch("/api/stop", {
+          method: "POST",
+          headers: { "X-Pipeline-Viewer": "1" },
+        });
+        if (!response.ok)
+          throw Error("No se pudo detener (" + response.status + ")");
+        await poll();
+      } catch (error) {
+        document.getElementById("status").textContent = error.message;
+      }
+    };
+    const consolePanel = document.getElementById("logs").closest("section");
+    consolePanel.classList.add("console-panel");
+    document.querySelector(".detail").append(consolePanel);
+    const connection = document.createElement("span");
+    connection.id = "connection";
+    document.getElementById("status").parentElement.append(connection);
+    document.querySelector(".notice").textContent =
+      "Las conexiones muestran el flujo de datos. La etapa 2 produce el lote priorizado que utilizan las etapas 3–9. Las partículas recorren únicamente la conexión hacia la etapa que Python está ejecutando. Actualmente las etapas se ejecutan secuencialmente, no en paralelo.";
+    document.querySelector(".legend").title =
+      document.querySelector(".notice").textContent;
+    document.querySelector(".legend").lastElementChild.textContent =
+      "→ Datos · partículas: etapa activa";
+    stages.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.className = "node";
+      b.style.left = positions[i][0] + "%";
+      b.style.top = positions[i][1] + "%";
+      b.title = `Etapa ${i}: ${s[0]} · ${s[1]}`;
+      b.innerHTML = `<span class="badge">${String(i).padStart(2, "0")} · En espera</span><strong>${s[0]}</strong><small>${s[1]}</small>`;
+      b.onclick = () => {
+        selected = i;
+        render();
+      };
+      nodes.append(b);
+    });
+    const links = Array.from({ length: 9 }, (_, i) => [i, i + 1]);
+    function drawLinks() {
+      const box = document.querySelector(".map").getBoundingClientRect();
+      svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+      svg.innerHTML =
+        '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#73968e" stroke-width="1.5"/></marker></defs>';
+      links.forEach(([a, b]) => {
+        const from = nodes.children[a].getBoundingClientRect(),
+          to = nodes.children[b].getBoundingClientRect();
+        const vertical = positions[a][0] === positions[b][0];
+        const x1 = (vertical ? from.left - 4 : from.right + 3) - box.left,
+          y1 = from.top + from.height / 2 - box.top;
+        const x2 = to.left - 4 - box.left,
+          y2 = to.top + to.height / 2 - box.top;
+        const bend = (x2 - x1) * 0.55;
+        const d = vertical
+          ? `M ${x1} ${y1} C ${x1 - box.width * 0.12} ${y1}, ${x2 - box.width * 0.12} ${y2}, ${x2} ${y2}`
+          : `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
+        svg.insertAdjacentHTML(
+          "beforeend",
+          `<path id="edge${b}" d="${d}" fill="none" stroke="#2b4057" stroke-width="1.15" marker-end="url(#arrow)"/><g id="particles${b}" style="display:none">${[0, 0.5, 1].map((t) => `<circle class="particle" r="2"><animateMotion dur="1.6s" begin="-${t}s" repeatCount="indefinite" path="${d}"/></circle>`).join("")}</g>`,
+        );
+      });
+      render();
+    }
+    new ResizeObserver(drawLinks).observe(nodes);
+    function render() {
+      const labels = {
+        running: "En ejecución",
+        done: "Completada",
+        error: "Error",
+      };
+      [...nodes.children].forEach((b, i) => {
+        const s = state.stages[i];
+        b.className =
+          "node " + (s?.status || "") + (selected === i ? " selected" : "");
+        b.querySelector(".badge").textContent =
+          String(i).padStart(2, "0") +
+          " · " +
+          (labels[s?.status] || "En espera");
+        const p = document.getElementById("particles" + i);
+        if (p) p.style.display = state.active === i ? "" : "none";
+      });
+      document.getElementById("number").textContent = "ETAPA " + selected;
+      document.getElementById("title").textContent = stages[selected][0];
+      document.getElementById("description").textContent = stages[selected][2];
+      const s = state.stages[selected];
+      document.getElementById("timing").textContent =
+        s?.seconds !== undefined
+          ? `Tiempo observado: ${s.seconds} s (excluye pausa visual; no es un benchmark).`
+          : "";
+      document.getElementById("data").textContent =
+        JSON.stringify(mode === "input" ? s?.input : s?.data, null, 2) ||
+        "Todavía no hay datos para esta vista.";
+      document.getElementById("status").textContent =
+        {
+          idle: "Esperando ejecución",
+          running:
+            state.active == null
+              ? "Preparando ejecución…"
+              : "Ejecutando etapa " + state.active,
+          done: "Ejecución completada",
+          error: "La ejecución se detuvo con un error",
+        }[state.status] || "Esperando ejecución";
+      document.getElementById("progress").textContent =
+        Object.values(state.stages).filter((s) => s.status === "done").length +
+        " / 10 etapas · lote " +
+        (state.batch || 1);
+      document.getElementById("run").disabled = state.status === "running";
+      const log = document.getElementById("logs"),
+        text = (state.logs || []).join("\n");
+      if (log.textContent !== text) {
+        log.textContent = text || "Sin actividad.";
+        log.scrollTop = log.scrollHeight;
+      }
+    }
+    document.getElementById("input").onclick = () => {
+      mode = "input";
+      render();
+    };
+    document.getElementById("output").onclick = () => {
+      mode = "output";
+      render();
+    };
+    document.getElementById("run").onclick = async () => {
+      try {
+        const r = await fetch("/api/run", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Pipeline-Viewer": "1",
+          },
+          body: JSON.stringify({
+            delay: Number(document.getElementById("delay").value),
+          }),
+        });
+        if (!r.ok) throw Error("No se pudo iniciar (" + r.status + ")");
+        await poll();
+      } catch (e) {
+        document.getElementById("status").textContent = e.message;
+      }
+    };
+    function renderConnection() {
+      connection.textContent = connected
+        ? "● Python conectado"
+        : state.status === "done"
+          ? "Resultado conservado · servidor cerrado"
+          : "Reconectando con Python…";
+      document.getElementById("run").disabled =
+        !connected || state.status === "running";
+      document
+        .getElementById("input")
+        .setAttribute("aria-pressed", mode === "input");
+      document
+        .getElementById("output")
+        .setAttribute("aria-pressed", mode === "output");
+      if (!connected && state.status === "running")
+        document.getElementById("status").textContent =
+          "Ejecución interrumpida · último estado disponible";
+      links.forEach(([, b]) => {
+        const edge = document.getElementById("edge" + b);
+        if (edge) {
+          const active = state.active === b;
+          edge.setAttribute(
+            "stroke",
+            active
+              ? "#9cecff"
+              : state.stages[b]?.status === "done"
+                ? "#3b6974"
+                : "#2b4057",
+          );
+          edge.setAttribute("stroke-width", active ? "1.8" : "1.15");
+          edge.style.filter = active
+            ? "drop-shadow(0 0 4px #54caeb66)"
+            : "none";
+        }
+      });
+    }
+    const renderState = render;
+    render = function () {
+      renderState();
+      renderConnection();
+      const stopping = state.status === "stopping";
+      stopButton.disabled = !connected || state.status !== "running";
+      stopButton.textContent = stopping ? "Deteniendo…" : "Detener";
+      if (stopping) {
+        document.getElementById("run").disabled = true;
+        document.getElementById("status").textContent = "Deteniendo ejecución…";
+      }
+      if (state.status === "stopped") {
+        document.getElementById("status").textContent =
+          "Ejecución detenida · resultados parciales";
+        [...nodes.children].forEach((node, index) => {
+          if (state.stages[index]?.status === "stopped")
+            node.querySelector(".badge").textContent =
+              String(index).padStart(2, "0") + " · Detenida";
+        });
+      }
+    };
+    async function poll() {
+      if (polling) return;
+      polling = true;
+      try {
+        const r = await fetch("/api/state", {
+          signal: AbortSignal.timeout(4000),
+        });
+        if (!r.ok) throw Error();
+        state = await r.json();
+        connected = true;
+        if (state.active != null && state.active !== previousActive) {
+          selected = state.active;
+          mode = "output";
+        }
+        previousActive = state.active;
+        render();
+      } catch (e) {
+        connected = false;
+        render();
+      } finally {
+        polling = false;
+      }
+    }
+    const form = document.createElement("form");
+    form.className = "service-query";
+    form.innerHTML =
+      '<input name="product" aria-label="ID del producto" placeholder="ID del producto"><input name="prefix" aria-label="Prefijo de búsqueda" placeholder="Prefijo, por ejemplo pro" value="pro"><button>Consultar</button>';
+    document.querySelector(".tabs").after(form);
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      try {
+        const response = await fetch(
+          "/api/query?" + new URLSearchParams(new FormData(form)),
+        );
+        const answer = await response.json();
+        if (!response.ok) throw Error(answer.error);
+        document.getElementById("data").textContent = JSON.stringify(
+          answer,
+          null,
+          2,
+        );
+        form.dataset.answer = JSON.stringify(answer);
+      } catch (error) {
+        document.getElementById("data").textContent = error.message;
+      }
+    };
+    const previousRender = render;
+    render = function () {
+      previousRender();
+      const result = state.result;
+      if (result && !form.elements.product.value)
+        form.elements.product.value = result.query_product || "";
+      if (form.dataset.answer)
+        document.getElementById("data").textContent = form.dataset.answer;
+    };
+    form.addEventListener("input", () => delete form.dataset.answer);
+    document
+      .getElementById("run")
+      .addEventListener("click", () => delete form.dataset.answer);
+    [...nodes.children].forEach((node) =>
+      node.addEventListener("click", () => {
+        delete form.dataset.answer;
+        render();
+      }),
+    );
+    render();
+    poll();
+    setInterval(poll, 250);
+  </script>
+  <script src="/dashboard-popover.js"></script>
+</html>

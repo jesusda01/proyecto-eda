@@ -1,0 +1,4564 @@
+{
+  "generated_at": "2026-10-29T21:06:14.612425-05:00",
+  "versions": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "pyarrow": "26.0.0",
+    "networkx": "3.7",
+    "scikit-learn": "1.9.1",
+    "mmh3": "5.3.1",
+    "psutil": "7.2.2"
+  },
+  "source_sha256": {
+    "benchmarks.py": "ed78da2fd032305148ab4d236fe092d273e76edcacd674f54710dbd6490c4995",
+    "src\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src\\convert_to_parquet.py": "54197dbf15ea798a5f30e382d5fa318fc37d6898a8ee0b633a648f060084504b",
+    "src\\etapa_0_ingesta_buffer.py": "f0463134c12ae33d3e78a703fbc43938cdaf7312ac25a24da99b6ae621e8e7fb",
+    "src\\etapa_1_preprocesamiento_lotes.py": "604f0a2958af139afe1ba0e559f7a5677348c8ea0dc690e4c9e38bcf0dab9fd0",
+    "src\\etapa_2_cola_prioridades.py": "22f36022e58b6fe44506bbb4da8e280606f4c6c6379861b32e1027c64d007405",
+    "src\\etapa_3_almacenamiento_lookup_cache.py": "96291e7e5f0a623a4804980014ce7474b03d537c8c0108d23d42b399cc0e0f52",
+    "src\\etapa_4_indexacion_principal.py": "513fe3f327565fe973643e6693702d4f84ce3d8bff8e18d84e5b483a96a5b676",
+    "src\\etapa_5_indice_multidimensional.py": "77e88194fae50eabb51a64aa92c3c58f24cfbcd5347482f7e5749fc0058bd0ee",
+    "src\\etapa_6_filtrado_probabilistico.py": "c4f184f8655ebc5080fc3c7c099d739b0fb505d953fd66cd574fc8aea0512e2f",
+    "src\\etapa_7_similitud_aproximada.py": "45b7f15fdf86953b4c4046b3a54c6506fafb0596156954ae9b04f3c691d3a43c",
+    "src\\etapa_8_grafo_dominio.py": "8c533240be8a0099488260c690c279750cce3da09db9a18a3bc249cd75eadf52",
+    "src\\etapa_9_servicio_visualizacion.py": "f744c2666eb1b606038ca02d8378694def0a541db962904a55211d5b25b61981",
+    "src\\pipeline.py": "c0b388cd2d428de6386eafdffd5c5477d221341960634943bbe1b171207d6098",
+    "src\\stream_reader.py": "8dbd8f7270f3d7823f96461d3c159a98476185ce9a433e3c287f241c8369b142"
+  },
+  "seed": 42,
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.14.4",
+  "memory_scope": "tracemalloc: asignaciones Python actuales y pico. RSS antes/después: proceso, no pico nativo.",
+  "limitation": "El recorte de entidades se informa y NO acredita evaluación analítica completa a 10M.",
+  "datasets": [
+    {
+      "path": "data\\ecommerce_10K.parquet",
+      "events": 10000,
+      "distinct_keys": 4270,
+      "vectors": 300,
+      "dimensions": 17,
+      "sets": 300,
+      "nodes": 621,
+      "edges": 898,
+      "graph_events": 900,
+      "rows_for_entities": 5000,
+      "entity_cap": 300,
+      "queries": 5,
+      "graph_provenance": "Órdenes SIMULADAS: grupos consecutivos de tres product_id; no órdenes reales.",
+      "repetitions": 1,
+      "entity_sampled": true,
+      "graph_sampled": true,
+      "raw": [
+        {
+          "family": "probabilistic",
+          "algorithm": "bloom",
+          "repetition": 0,
+          "seconds": 0.05275069999333937,
+          "current_bytes": 5710,
+          "peak_bytes": 6217,
+          "rss_before": 227151872,
+          "rss_after": 227192832,
+          "query_seconds": 0.018586299993330613,
+          "fpr": 0.007494145199063232,
+          "false_negatives": 0,
+          "m_bits": 40929,
+          "k_hashes": 7
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "set",
+          "repetition": 0,
+          "seconds": 0.004223800002364442,
+          "current_bytes": 233768,
+          "peak_bytes": 234083,
+          "rss_before": 227192832,
+          "rss_after": 227524608,
+          "query_seconds": 0.0016545999969821423,
+          "unique": 4270
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "cms",
+          "repetition": 0,
+          "seconds": 0.13291689999459777,
+          "current_bytes": 342096,
+          "peak_bytes": 448912,
+          "rss_before": 227524608,
+          "rss_after": 227733504,
+          "mean_absolute_error": 0.011007025761124122,
+          "max_overestimate": 2,
+          "width": 8540,
+          "depth": 5
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "counter",
+          "repetition": 0,
+          "seconds": 0.004498599999351427,
+          "current_bytes": 250312,
+          "peak_bytes": 287168,
+          "rss_before": 227733504,
+          "rss_after": 227733504,
+          "unique": 4270
+        },
+        {
+          "family": "sets",
+          "algorithm": "minhash_lsh",
+          "repetition": 0,
+          "seconds": 0.06259839999256656,
+          "current_bytes": 2637696,
+          "peak_bytes": 2641680,
+          "rss_before": 227741696,
+          "rss_after": 231567360,
+          "query_seconds": 0.008555699998396449,
+          "recall": 1.0,
+          "precision": 1.0,
+          "signature_mae": 0.0,
+          "bands": 16,
+          "num_perm": 64
+        },
+        {
+          "family": "sets",
+          "algorithm": "jaccard_exact",
+          "repetition": 0,
+          "seconds": 0.006246200005989522,
+          "current_bytes": 2400,
+          "peak_bytes": 22904,
+          "rss_before": 231567360,
+          "rss_after": 231567360,
+          "query_seconds": 0.006243800002266653
+        },
+        {
+          "family": "vectors",
+          "algorithm": "hnsw",
+          "repetition": 0,
+          "seconds": 0.5467415000020992,
+          "current_bytes": 360352,
+          "peak_bytes": 371864,
+          "rss_before": 231575552,
+          "rss_after": 231604224,
+          "query_seconds": 0.003213300005882047,
+          "recall_at_5": 1.0,
+          "tie_aware_recall_at_5": 1.0,
+          "build_seconds": 0.5431545000028564,
+          "layers": 4,
+          "m": 8,
+          "ef_search": 32,
+          "ef_construction": 48
+        },
+        {
+          "family": "vectors",
+          "algorithm": "knn_exact",
+          "repetition": 0,
+          "seconds": 0.007707699987804517,
+          "current_bytes": 2400,
+          "peak_bytes": 12168,
+          "rss_before": 231604224,
+          "rss_after": 231604224,
+          "query_seconds": 0.007705500000156462
+        },
+        {
+          "family": "ranking",
+          "algorithm": "pagerank",
+          "repetition": 0,
+          "seconds": 0.006514799999422394,
+          "current_bytes": 79591,
+          "peak_bytes": 321289,
+          "rss_before": 231604224,
+          "rss_after": 231739392,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "16000004",
+            "1004788",
+            "31501013",
+            "10301494",
+            "1004258",
+            "29100071",
+            "29100011",
+            "1005116",
+            "17501048",
+            "29100051",
+            "1005014",
+            "1002542",
+            "1304409",
+            "15900065",
+            "3600700",
+            "16700794",
+            "1005105"
+          ],
+          "overlap_with_degree_at_20": 0.95
+        },
+        {
+          "family": "ranking",
+          "algorithm": "degree",
+          "repetition": 0,
+          "seconds": 0.001495400007115677,
+          "current_bytes": 552,
+          "peak_bytes": 28432,
+          "rss_before": 231739392,
+          "rss_after": 231739392,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "1004258",
+            "1004788",
+            "10301494",
+            "16000004",
+            "31501013",
+            "29100011",
+            "29100071",
+            "1002542",
+            "1005014",
+            "1005116",
+            "1304409",
+            "15900065",
+            "16700794",
+            "17501048",
+            "29100051",
+            "3600700",
+            "1003898"
+          ]
+        },
+        {
+          "family": "communities",
+          "algorithm": "louvain",
+          "repetition": 0,
+          "seconds": 0.09169570000085514,
+          "current_bytes": 85492,
+          "peak_bytes": 831485,
+          "rss_before": 231739392,
+          "rss_after": 231874560,
+          "modularity": 0.8809777777777779,
+          "community_count": 68,
+          "community_sizes": [
+            36,
+            35,
+            33,
+            32,
+            31,
+            30,
+            28,
+            26,
+            25,
+            24,
+            20,
+            20,
+            19,
+            19,
+            18,
+            17,
+            15,
+            11,
+            9,
+            7,
+            7,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "communities",
+          "algorithm": "label_propagation",
+          "repetition": 0,
+          "seconds": 0.04040109999186825,
+          "current_bytes": 15157,
+          "peak_bytes": 131530,
+          "rss_before": 231874560,
+          "rss_after": 231878656,
+          "modularity": 0.6766839506172839,
+          "community_count": 176,
+          "community_sizes": [
+            13,
+            11,
+            11,
+            10,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "base",
+          "algorithm": "fifo",
+          "repetition": 0,
+          "seconds": 7.670000195503235e-05,
+          "current_bytes": 3728,
+          "peak_bytes": 3728,
+          "rss_before": 231878656,
+          "rss_after": 231878656,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "preprocess",
+          "repetition": 0,
+          "seconds": 0.001425900001777336,
+          "current_bytes": 12104,
+          "peak_bytes": 35888,
+          "rss_before": 231878656,
+          "rss_after": 232529920,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "heap",
+          "repetition": 0,
+          "seconds": 0.0004844999930355698,
+          "current_bytes": 14496,
+          "peak_bytes": 57856,
+          "rss_before": 232529920,
+          "rss_after": 232529920,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "cache",
+          "repetition": 0,
+          "seconds": 0.00040530000114813447,
+          "current_bytes": 98032,
+          "peak_bytes": 98952,
+          "rss_before": 232529920,
+          "rss_after": 232529920,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "bplus_disk",
+          "repetition": 0,
+          "seconds": 0.05124739999882877,
+          "current_bytes": 29554,
+          "peak_bytes": 34307,
+          "rss_before": 232529920,
+          "rss_after": 232591360,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "kd_tree",
+          "repetition": 0,
+          "seconds": 0.006408499990357086,
+          "current_bytes": 96560,
+          "peak_bytes": 98464,
+          "rss_before": 232591360,
+          "rss_after": 232599552,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "trie_topk",
+          "repetition": 0,
+          "seconds": 0.0008585000032326207,
+          "current_bytes": 51664,
+          "peak_bytes": 76215,
+          "rss_before": 232599552,
+          "rss_after": 232599552,
+          "input_entities": 300
+        }
+      ],
+      "summary": {
+        "preprocess": {
+          "rss_after": {
+            "mean": 232529920,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231878656,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 12104,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 35888,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.001425900001777336,
+            "stdev": 0.0
+          }
+        },
+        "knn_exact": {
+          "rss_after": {
+            "mean": 231604224,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231604224,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 12168,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.007705500000156462,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.007707699987804517,
+            "stdev": 0.0
+          }
+        },
+        "hnsw": {
+          "m": {
+            "mean": 8,
+            "stdev": 0.0
+          },
+          "layers": {
+            "mean": 4,
+            "stdev": 0.0
+          },
+          "recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "ef_search": {
+            "mean": 32,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 231604224,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231575552,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 360352,
+            "stdev": 0.0
+          },
+          "ef_construction": {
+            "mean": 48,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 371864,
+            "stdev": 0.0
+          },
+          "tie_aware_recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "build_seconds": {
+            "mean": 0.5431545000028564,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.003213300005882047,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.5467415000020992,
+            "stdev": 0.0
+          }
+        },
+        "degree": {
+          "rss_after": {
+            "mean": 231739392,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231739392,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 552,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 28432,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.001495400007115677,
+            "stdev": 0.0
+          }
+        },
+        "set": {
+          "rss_after": {
+            "mean": 227524608,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 227192832,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 233768,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 234083,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 4270,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.0016545999969821423,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.004223800002364442,
+            "stdev": 0.0
+          }
+        },
+        "bplus_disk": {
+          "rss_after": {
+            "mean": 232591360,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 232529920,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 29554,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 34307,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.05124739999882877,
+            "stdev": 0.0
+          }
+        },
+        "heap": {
+          "rss_after": {
+            "mean": 232529920,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 232529920,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 14496,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 57856,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0004844999930355698,
+            "stdev": 0.0
+          }
+        },
+        "cache": {
+          "rss_after": {
+            "mean": 232529920,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 232529920,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 98032,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 98952,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.00040530000114813447,
+            "stdev": 0.0
+          }
+        },
+        "louvain": {
+          "rss_after": {
+            "mean": 231874560,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231739392,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 85492,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 831485,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 68,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.8809777777777779,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.09169570000085514,
+            "stdev": 0.0
+          }
+        },
+        "counter": {
+          "rss_after": {
+            "mean": 227733504,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 227733504,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 250312,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 287168,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 4270,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.004498599999351427,
+            "stdev": 0.0
+          }
+        },
+        "cms": {
+          "max_overestimate": {
+            "mean": 2,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 227733504,
+            "stdev": 0.0
+          },
+          "depth": {
+            "mean": 5,
+            "stdev": 0.0
+          },
+          "width": {
+            "mean": 8540,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 227524608,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 342096,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 448912,
+            "stdev": 0.0
+          },
+          "mean_absolute_error": {
+            "mean": 0.011007025761124122,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.13291689999459777,
+            "stdev": 0.0
+          }
+        },
+        "trie_topk": {
+          "rss_after": {
+            "mean": 232599552,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 232599552,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 51664,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 76215,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0008585000032326207,
+            "stdev": 0.0
+          }
+        },
+        "jaccard_exact": {
+          "rss_after": {
+            "mean": 231567360,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231567360,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 22904,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.006243800002266653,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.006246200005989522,
+            "stdev": 0.0
+          }
+        },
+        "label_propagation": {
+          "rss_after": {
+            "mean": 231878656,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231874560,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 15157,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 131530,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 176,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.6766839506172839,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.04040109999186825,
+            "stdev": 0.0
+          }
+        },
+        "bloom": {
+          "fpr": {
+            "mean": 0.007494145199063232,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 227192832,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 227151872,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 5710,
+            "stdev": 0.0
+          },
+          "m_bits": {
+            "mean": 40929,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 6217,
+            "stdev": 0.0
+          },
+          "k_hashes": {
+            "mean": 7,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.018586299993330613,
+            "stdev": 0.0
+          },
+          "false_negatives": {
+            "mean": 0,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.05275069999333937,
+            "stdev": 0.0
+          }
+        },
+        "fifo": {
+          "rss_after": {
+            "mean": 231878656,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231878656,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 3728,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 3728,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 7.670000195503235e-05,
+            "stdev": 0.0
+          }
+        },
+        "pagerank": {
+          "rss_after": {
+            "mean": 231739392,
+            "stdev": 0.0
+          },
+          "overlap_with_degree_at_20": {
+            "mean": 0.95,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 231604224,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 79591,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 321289,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.006514799999422394,
+            "stdev": 0.0
+          }
+        },
+        "kd_tree": {
+          "rss_after": {
+            "mean": 232599552,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 232591360,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 96560,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 98464,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.006408499990357086,
+            "stdev": 0.0
+          }
+        },
+        "minhash_lsh": {
+          "signature_mae": {
+            "mean": 0.0,
+            "stdev": 0.0
+          },
+          "bands": {
+            "mean": 16,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 231567360,
+            "stdev": 0.0
+          },
+          "num_perm": {
+            "mean": 64,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 227741696,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2637696,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 2641680,
+            "stdev": 0.0
+          },
+          "precision": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.008555699998396449,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.06259839999256656,
+            "stdev": 0.0
+          },
+          "recall": {
+            "mean": 1.0,
+            "stdev": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "data\\ecommerce_100K.parquet",
+      "events": 100000,
+      "distinct_keys": 20675,
+      "vectors": 300,
+      "dimensions": 17,
+      "sets": 300,
+      "nodes": 621,
+      "edges": 898,
+      "graph_events": 900,
+      "rows_for_entities": 5000,
+      "entity_cap": 300,
+      "queries": 5,
+      "graph_provenance": "Órdenes SIMULADAS: grupos consecutivos de tres product_id; no órdenes reales.",
+      "repetitions": 1,
+      "entity_sampled": true,
+      "graph_sampled": true,
+      "raw": [
+        {
+          "family": "probabilistic",
+          "algorithm": "bloom",
+          "repetition": 0,
+          "seconds": 0.45390799999586307,
+          "current_bytes": 25357,
+          "peak_bytes": 25864,
+          "rss_before": 240353280,
+          "rss_after": 240353280,
+          "query_seconds": 0.09360810001089703,
+          "fpr": 0.009576783555018138,
+          "false_negatives": 0,
+          "m_bits": 198172,
+          "k_hashes": 7
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "set",
+          "repetition": 0,
+          "seconds": 0.03359869999985676,
+          "current_bytes": 2593568,
+          "peak_bytes": 3093568,
+          "rss_before": 240353280,
+          "rss_after": 243437568,
+          "query_seconds": 0.007279400000697933,
+          "unique": 20675
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "cms",
+          "repetition": 0,
+          "seconds": 3.7832294999971054,
+          "current_bytes": 1654416,
+          "peak_bytes": 2059656,
+          "rss_before": 241336320,
+          "rss_after": 242999296,
+          "mean_absolute_error": 0.01049576783555018,
+          "max_overestimate": 8,
+          "width": 41350,
+          "depth": 5
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "counter",
+          "repetition": 0,
+          "seconds": 0.17916909999621566,
+          "current_bytes": 1086384,
+          "peak_bytes": 1147312,
+          "rss_before": 241344512,
+          "rss_after": 241881088,
+          "unique": 20675
+        },
+        {
+          "family": "sets",
+          "algorithm": "minhash_lsh",
+          "repetition": 0,
+          "seconds": 0.20868139999220148,
+          "current_bytes": 2389936,
+          "peak_bytes": 2393992,
+          "rss_before": 241881088,
+          "rss_after": 243146752,
+          "query_seconds": 0.038228999997954816,
+          "recall": 1.0,
+          "precision": 1.0,
+          "signature_mae": 0.0,
+          "bands": 16,
+          "num_perm": 64
+        },
+        {
+          "family": "sets",
+          "algorithm": "jaccard_exact",
+          "repetition": 0,
+          "seconds": 0.030079600008320995,
+          "current_bytes": 2400,
+          "peak_bytes": 22904,
+          "rss_before": 243146752,
+          "rss_after": 243146752,
+          "query_seconds": 0.03007429999706801
+        },
+        {
+          "family": "vectors",
+          "algorithm": "hnsw",
+          "repetition": 0,
+          "seconds": 2.0799772000027588,
+          "current_bytes": 360280,
+          "peak_bytes": 371792,
+          "rss_before": 243146752,
+          "rss_after": 243146752,
+          "query_seconds": 0.011258200000156648,
+          "recall_at_5": 1.0,
+          "tie_aware_recall_at_5": 1.0,
+          "build_seconds": 2.066730500009726,
+          "layers": 4,
+          "m": 8,
+          "ef_search": 32,
+          "ef_construction": 48
+        },
+        {
+          "family": "vectors",
+          "algorithm": "knn_exact",
+          "repetition": 0,
+          "seconds": 0.022480100000393577,
+          "current_bytes": 2400,
+          "peak_bytes": 12168,
+          "rss_before": 243146752,
+          "rss_after": 243146752,
+          "query_seconds": 0.022475600009784102
+        },
+        {
+          "family": "ranking",
+          "algorithm": "pagerank",
+          "repetition": 0,
+          "seconds": 0.023150599998189136,
+          "current_bytes": 9247,
+          "peak_bytes": 256310,
+          "rss_before": 243146752,
+          "rss_after": 243150848,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "16000004",
+            "1004788",
+            "31501013",
+            "10301494",
+            "1004258",
+            "29100071",
+            "29100011",
+            "1005116",
+            "17501048",
+            "29100051",
+            "1005014",
+            "1002542",
+            "1304409",
+            "15900065",
+            "3600700",
+            "16700794",
+            "1005105"
+          ],
+          "overlap_with_degree_at_20": 0.95
+        },
+        {
+          "family": "ranking",
+          "algorithm": "degree",
+          "repetition": 0,
+          "seconds": 0.003201599989552051,
+          "current_bytes": 376,
+          "peak_bytes": 28256,
+          "rss_before": 243150848,
+          "rss_after": 243150848,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "1004258",
+            "1004788",
+            "10301494",
+            "16000004",
+            "31501013",
+            "29100011",
+            "29100071",
+            "1002542",
+            "1005014",
+            "1005116",
+            "1304409",
+            "15900065",
+            "16700794",
+            "17501048",
+            "29100051",
+            "3600700",
+            "1003898"
+          ]
+        },
+        {
+          "family": "communities",
+          "algorithm": "louvain",
+          "repetition": 0,
+          "seconds": 0.24056669999845326,
+          "current_bytes": 20488,
+          "peak_bytes": 809624,
+          "rss_before": 243150848,
+          "rss_after": 243183616,
+          "modularity": 0.8809777777777779,
+          "community_count": 68,
+          "community_sizes": [
+            36,
+            35,
+            33,
+            32,
+            31,
+            30,
+            28,
+            26,
+            25,
+            24,
+            20,
+            20,
+            19,
+            19,
+            18,
+            17,
+            15,
+            11,
+            9,
+            7,
+            7,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "communities",
+          "algorithm": "label_propagation",
+          "repetition": 0,
+          "seconds": 0.12394790000689682,
+          "current_bytes": 11051,
+          "peak_bytes": 127341,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "modularity": 0.6766839506172839,
+          "community_count": 176,
+          "community_sizes": [
+            13,
+            11,
+            11,
+            10,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "base",
+          "algorithm": "fifo",
+          "repetition": 0,
+          "seconds": 9.830000635702163e-05,
+          "current_bytes": 3720,
+          "peak_bytes": 3720,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "preprocess",
+          "repetition": 0,
+          "seconds": 0.002762300005997531,
+          "current_bytes": 12096,
+          "peak_bytes": 35880,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "heap",
+          "repetition": 0,
+          "seconds": 0.0008998999983305112,
+          "current_bytes": 14488,
+          "peak_bytes": 57848,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "cache",
+          "repetition": 0,
+          "seconds": 0.0011316000018268824,
+          "current_bytes": 98024,
+          "peak_bytes": 98944,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "bplus_disk",
+          "repetition": 0,
+          "seconds": 0.10440539999399334,
+          "current_bytes": 23728,
+          "peak_bytes": 28649,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "kd_tree",
+          "repetition": 0,
+          "seconds": 0.011118399997940287,
+          "current_bytes": 38688,
+          "peak_bytes": 40712,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "trie_topk",
+          "repetition": 0,
+          "seconds": 0.001317600006586872,
+          "current_bytes": 48296,
+          "peak_bytes": 72839,
+          "rss_before": 243183616,
+          "rss_after": 243183616,
+          "input_entities": 300
+        }
+      ],
+      "summary": {
+        "preprocess": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 12096,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 35880,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.002762300005997531,
+            "stdev": 0.0
+          }
+        },
+        "knn_exact": {
+          "rss_after": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 12168,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.022475600009784102,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.022480100000393577,
+            "stdev": 0.0
+          }
+        },
+        "hnsw": {
+          "m": {
+            "mean": 8,
+            "stdev": 0.0
+          },
+          "layers": {
+            "mean": 4,
+            "stdev": 0.0
+          },
+          "recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "ef_search": {
+            "mean": 32,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 360280,
+            "stdev": 0.0
+          },
+          "ef_construction": {
+            "mean": 48,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 371792,
+            "stdev": 0.0
+          },
+          "tie_aware_recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "build_seconds": {
+            "mean": 2.066730500009726,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.011258200000156648,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 2.0799772000027588,
+            "stdev": 0.0
+          }
+        },
+        "degree": {
+          "rss_after": {
+            "mean": 243150848,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243150848,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 376,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 28256,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.003201599989552051,
+            "stdev": 0.0
+          }
+        },
+        "set": {
+          "rss_after": {
+            "mean": 243437568,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 240353280,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2593568,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 3093568,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 20675,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.007279400000697933,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.03359869999985676,
+            "stdev": 0.0
+          }
+        },
+        "bplus_disk": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 23728,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 28649,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.10440539999399334,
+            "stdev": 0.0
+          }
+        },
+        "heap": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 14488,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 57848,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0008998999983305112,
+            "stdev": 0.0
+          }
+        },
+        "cache": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 98024,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 98944,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0011316000018268824,
+            "stdev": 0.0
+          }
+        },
+        "louvain": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243150848,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 20488,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 809624,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 68,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.8809777777777779,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.24056669999845326,
+            "stdev": 0.0
+          }
+        },
+        "counter": {
+          "rss_after": {
+            "mean": 241881088,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 241344512,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 1086384,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 1147312,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 20675,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.17916909999621566,
+            "stdev": 0.0
+          }
+        },
+        "cms": {
+          "max_overestimate": {
+            "mean": 8,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 242999296,
+            "stdev": 0.0
+          },
+          "depth": {
+            "mean": 5,
+            "stdev": 0.0
+          },
+          "width": {
+            "mean": 41350,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 241336320,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 1654416,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 2059656,
+            "stdev": 0.0
+          },
+          "mean_absolute_error": {
+            "mean": 0.01049576783555018,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 3.7832294999971054,
+            "stdev": 0.0
+          }
+        },
+        "trie_topk": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 48296,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 72839,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.001317600006586872,
+            "stdev": 0.0
+          }
+        },
+        "jaccard_exact": {
+          "rss_after": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 22904,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.03007429999706801,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.030079600008320995,
+            "stdev": 0.0
+          }
+        },
+        "label_propagation": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 11051,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 127341,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 176,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.6766839506172839,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.12394790000689682,
+            "stdev": 0.0
+          }
+        },
+        "bloom": {
+          "fpr": {
+            "mean": 0.009576783555018138,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 240353280,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 240353280,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 25357,
+            "stdev": 0.0
+          },
+          "m_bits": {
+            "mean": 198172,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 25864,
+            "stdev": 0.0
+          },
+          "k_hashes": {
+            "mean": 7,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.09360810001089703,
+            "stdev": 0.0
+          },
+          "false_negatives": {
+            "mean": 0,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.45390799999586307,
+            "stdev": 0.0
+          }
+        },
+        "fifo": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 3720,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 3720,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 9.830000635702163e-05,
+            "stdev": 0.0
+          }
+        },
+        "pagerank": {
+          "rss_after": {
+            "mean": 243150848,
+            "stdev": 0.0
+          },
+          "overlap_with_degree_at_20": {
+            "mean": 0.95,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 9247,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 256310,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.023150599998189136,
+            "stdev": 0.0
+          }
+        },
+        "kd_tree": {
+          "rss_after": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 243183616,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 38688,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 40712,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.011118399997940287,
+            "stdev": 0.0
+          }
+        },
+        "minhash_lsh": {
+          "signature_mae": {
+            "mean": 0.0,
+            "stdev": 0.0
+          },
+          "bands": {
+            "mean": 16,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 243146752,
+            "stdev": 0.0
+          },
+          "num_perm": {
+            "mean": 64,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 241881088,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2389936,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 2393992,
+            "stdev": 0.0
+          },
+          "precision": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.038228999997954816,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.20868139999220148,
+            "stdev": 0.0
+          },
+          "recall": {
+            "mean": 1.0,
+            "stdev": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "data\\ecommerce_1M.parquet",
+      "events": 1000000,
+      "distinct_keys": 66001,
+      "vectors": 300,
+      "dimensions": 17,
+      "sets": 300,
+      "nodes": 621,
+      "edges": 898,
+      "graph_events": 900,
+      "rows_for_entities": 5000,
+      "entity_cap": 300,
+      "queries": 5,
+      "graph_provenance": "Órdenes SIMULADAS: grupos consecutivos de tres product_id; no órdenes reales.",
+      "repetitions": 1,
+      "entity_sampled": true,
+      "graph_sampled": true,
+      "raw": [
+        {
+          "family": "probabilistic",
+          "algorithm": "bloom",
+          "repetition": 0,
+          "seconds": 15.437804200002574,
+          "current_bytes": 79655,
+          "peak_bytes": 80162,
+          "rss_before": 288292864,
+          "rss_after": 288292864,
+          "query_seconds": 1.1057846000039717,
+          "fpr": 0.009924092059211223,
+          "false_negatives": 0,
+          "m_bits": 632624,
+          "k_hashes": 7
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "set",
+          "repetition": 0,
+          "seconds": 0.9726373000012245,
+          "current_bytes": 3681392,
+          "peak_bytes": 3681707,
+          "rss_before": 288292864,
+          "rss_after": 292638720,
+          "query_seconds": 0.07888470000762027,
+          "unique": 66001
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "cms",
+          "repetition": 0,
+          "seconds": 40.09675949999655,
+          "current_bytes": 5280488,
+          "peak_bytes": 6437808,
+          "rss_before": 290537472,
+          "rss_after": 296316928,
+          "mean_absolute_error": 0.014863411160436962,
+          "max_overestimate": 17,
+          "width": 132002,
+          "depth": 5
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "counter",
+          "repetition": 0,
+          "seconds": 2.2087120000069262,
+          "current_bytes": 4220592,
+          "peak_bytes": 4985632,
+          "rss_before": 291033088,
+          "rss_after": 295186432,
+          "unique": 66001
+        },
+        {
+          "family": "sets",
+          "algorithm": "minhash_lsh",
+          "repetition": 0,
+          "seconds": 0.19736530000227503,
+          "current_bytes": 2384400,
+          "peak_bytes": 2388512,
+          "rss_before": 292560896,
+          "rss_after": 290217984,
+          "query_seconds": 0.024147000003722496,
+          "recall": 1.0,
+          "precision": 1.0,
+          "signature_mae": 0.0,
+          "bands": 16,
+          "num_perm": 64
+        },
+        {
+          "family": "sets",
+          "algorithm": "jaccard_exact",
+          "repetition": 0,
+          "seconds": 0.01464259999920614,
+          "current_bytes": 2400,
+          "peak_bytes": 22880,
+          "rss_before": 290217984,
+          "rss_after": 290217984,
+          "query_seconds": 0.014638900000136346
+        },
+        {
+          "family": "vectors",
+          "algorithm": "hnsw",
+          "repetition": 0,
+          "seconds": 2.162469399991096,
+          "current_bytes": 360216,
+          "peak_bytes": 371728,
+          "rss_before": 290217984,
+          "rss_after": 290217984,
+          "query_seconds": 0.010108599992236122,
+          "recall_at_5": 1.0,
+          "tie_aware_recall_at_5": 1.0,
+          "build_seconds": 2.151655200010282,
+          "layers": 4,
+          "m": 8,
+          "ef_search": 32,
+          "ef_construction": 48
+        },
+        {
+          "family": "vectors",
+          "algorithm": "knn_exact",
+          "repetition": 0,
+          "seconds": 0.024478999999701045,
+          "current_bytes": 2400,
+          "peak_bytes": 12168,
+          "rss_before": 290217984,
+          "rss_after": 290217984,
+          "query_seconds": 0.02447530000063125
+        },
+        {
+          "family": "ranking",
+          "algorithm": "pagerank",
+          "repetition": 0,
+          "seconds": 0.02003339999646414,
+          "current_bytes": 7276,
+          "peak_bytes": 253998,
+          "rss_before": 290217984,
+          "rss_after": 290222080,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "16000004",
+            "1004788",
+            "31501013",
+            "10301494",
+            "1004258",
+            "29100071",
+            "29100011",
+            "1005116",
+            "17501048",
+            "29100051",
+            "1005014",
+            "1002542",
+            "1304409",
+            "15900065",
+            "3600700",
+            "16700794",
+            "1005105"
+          ],
+          "overlap_with_degree_at_20": 0.95
+        },
+        {
+          "family": "ranking",
+          "algorithm": "degree",
+          "repetition": 0,
+          "seconds": 0.003144399990560487,
+          "current_bytes": 336,
+          "peak_bytes": 28216,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "1004258",
+            "1004788",
+            "10301494",
+            "16000004",
+            "31501013",
+            "29100011",
+            "29100071",
+            "1002542",
+            "1005014",
+            "1005116",
+            "1304409",
+            "15900065",
+            "16700794",
+            "17501048",
+            "29100051",
+            "3600700",
+            "1003898"
+          ]
+        },
+        {
+          "family": "communities",
+          "algorithm": "louvain",
+          "repetition": 0,
+          "seconds": 0.2823235999967437,
+          "current_bytes": 20626,
+          "peak_bytes": 809496,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "modularity": 0.8809777777777779,
+          "community_count": 68,
+          "community_sizes": [
+            36,
+            35,
+            33,
+            32,
+            31,
+            30,
+            28,
+            26,
+            25,
+            24,
+            20,
+            20,
+            19,
+            19,
+            18,
+            17,
+            15,
+            11,
+            9,
+            7,
+            7,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "communities",
+          "algorithm": "label_propagation",
+          "repetition": 0,
+          "seconds": 0.13976269999693613,
+          "current_bytes": 11143,
+          "peak_bytes": 127401,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "modularity": 0.6766839506172839,
+          "community_count": 176,
+          "community_sizes": [
+            13,
+            11,
+            11,
+            10,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "base",
+          "algorithm": "fifo",
+          "repetition": 0,
+          "seconds": 9.129999671131372e-05,
+          "current_bytes": 3712,
+          "peak_bytes": 3712,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "preprocess",
+          "repetition": 0,
+          "seconds": 0.0031097000028239563,
+          "current_bytes": 12088,
+          "peak_bytes": 35872,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "heap",
+          "repetition": 0,
+          "seconds": 0.0009189000120386481,
+          "current_bytes": 14480,
+          "peak_bytes": 57840,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "cache",
+          "repetition": 0,
+          "seconds": 0.0006716999923810363,
+          "current_bytes": 98016,
+          "peak_bytes": 98936,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "bplus_disk",
+          "repetition": 0,
+          "seconds": 0.0933495000062976,
+          "current_bytes": 22992,
+          "peak_bytes": 27993,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "kd_tree",
+          "repetition": 0,
+          "seconds": 0.009665000005043112,
+          "current_bytes": 38504,
+          "peak_bytes": 40704,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "trie_topk",
+          "repetition": 0,
+          "seconds": 0.001141000000643544,
+          "current_bytes": 48288,
+          "peak_bytes": 72823,
+          "rss_before": 290222080,
+          "rss_after": 290222080,
+          "input_entities": 300
+        }
+      ],
+      "summary": {
+        "preprocess": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 12088,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 35872,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0031097000028239563,
+            "stdev": 0.0
+          }
+        },
+        "knn_exact": {
+          "rss_after": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 12168,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.02447530000063125,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.024478999999701045,
+            "stdev": 0.0
+          }
+        },
+        "hnsw": {
+          "m": {
+            "mean": 8,
+            "stdev": 0.0
+          },
+          "layers": {
+            "mean": 4,
+            "stdev": 0.0
+          },
+          "recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "ef_search": {
+            "mean": 32,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 360216,
+            "stdev": 0.0
+          },
+          "ef_construction": {
+            "mean": 48,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 371728,
+            "stdev": 0.0
+          },
+          "tie_aware_recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "build_seconds": {
+            "mean": 2.151655200010282,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.010108599992236122,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 2.162469399991096,
+            "stdev": 0.0
+          }
+        },
+        "degree": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 336,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 28216,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.003144399990560487,
+            "stdev": 0.0
+          }
+        },
+        "set": {
+          "rss_after": {
+            "mean": 292638720,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 288292864,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 3681392,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 3681707,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 66001,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.07888470000762027,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.9726373000012245,
+            "stdev": 0.0
+          }
+        },
+        "bplus_disk": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 22992,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 27993,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0933495000062976,
+            "stdev": 0.0
+          }
+        },
+        "heap": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 14480,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 57840,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0009189000120386481,
+            "stdev": 0.0
+          }
+        },
+        "cache": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 98016,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 98936,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0006716999923810363,
+            "stdev": 0.0
+          }
+        },
+        "louvain": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 20626,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 809496,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 68,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.8809777777777779,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.2823235999967437,
+            "stdev": 0.0
+          }
+        },
+        "counter": {
+          "rss_after": {
+            "mean": 295186432,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 291033088,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 4220592,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 4985632,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 66001,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 2.2087120000069262,
+            "stdev": 0.0
+          }
+        },
+        "cms": {
+          "max_overestimate": {
+            "mean": 17,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 296316928,
+            "stdev": 0.0
+          },
+          "depth": {
+            "mean": 5,
+            "stdev": 0.0
+          },
+          "width": {
+            "mean": 132002,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290537472,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 5280488,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 6437808,
+            "stdev": 0.0
+          },
+          "mean_absolute_error": {
+            "mean": 0.014863411160436962,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 40.09675949999655,
+            "stdev": 0.0
+          }
+        },
+        "trie_topk": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 48288,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 72823,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.001141000000643544,
+            "stdev": 0.0
+          }
+        },
+        "jaccard_exact": {
+          "rss_after": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 22880,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.014638900000136346,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.01464259999920614,
+            "stdev": 0.0
+          }
+        },
+        "label_propagation": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 11143,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 127401,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 176,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.6766839506172839,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.13976269999693613,
+            "stdev": 0.0
+          }
+        },
+        "bloom": {
+          "fpr": {
+            "mean": 0.009924092059211223,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 288292864,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 288292864,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 79655,
+            "stdev": 0.0
+          },
+          "m_bits": {
+            "mean": 632624,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 80162,
+            "stdev": 0.0
+          },
+          "k_hashes": {
+            "mean": 7,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 1.1057846000039717,
+            "stdev": 0.0
+          },
+          "false_negatives": {
+            "mean": 0,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 15.437804200002574,
+            "stdev": 0.0
+          }
+        },
+        "fifo": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 3712,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 3712,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 9.129999671131372e-05,
+            "stdev": 0.0
+          }
+        },
+        "pagerank": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "overlap_with_degree_at_20": {
+            "mean": 0.95,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 7276,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 253998,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.02003339999646414,
+            "stdev": 0.0
+          }
+        },
+        "kd_tree": {
+          "rss_after": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 290222080,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 38504,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 40704,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.009665000005043112,
+            "stdev": 0.0
+          }
+        },
+        "minhash_lsh": {
+          "signature_mae": {
+            "mean": 0.0,
+            "stdev": 0.0
+          },
+          "bands": {
+            "mean": 16,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 290217984,
+            "stdev": 0.0
+          },
+          "num_perm": {
+            "mean": 64,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 292560896,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2384400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 2388512,
+            "stdev": 0.0
+          },
+          "precision": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.024147000003722496,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.19736530000227503,
+            "stdev": 0.0
+          },
+          "recall": {
+            "mean": 1.0,
+            "stdev": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "data\\ecommerce_10M.parquet",
+      "events": 10000000,
+      "distinct_keys": 133917,
+      "vectors": 300,
+      "dimensions": 17,
+      "sets": 300,
+      "nodes": 621,
+      "edges": 898,
+      "graph_events": 900,
+      "rows_for_entities": 5000,
+      "entity_cap": 300,
+      "queries": 5,
+      "graph_provenance": "Órdenes SIMULADAS: grupos consecutivos de tres product_id; no órdenes reales.",
+      "repetitions": 1,
+      "entity_sampled": true,
+      "graph_sampled": true,
+      "raw": [
+        {
+          "family": "probabilistic",
+          "algorithm": "bloom",
+          "repetition": 0,
+          "seconds": 127.50745409999217,
+          "current_bytes": 161020,
+          "peak_bytes": 161527,
+          "rss_before": 457596928,
+          "rss_after": 457555968,
+          "query_seconds": 2.0887961000116775,
+          "fpr": 0.01002859980435643,
+          "false_negatives": 0,
+          "m_bits": 1283603,
+          "k_hashes": 7
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "set",
+          "repetition": 0,
+          "seconds": 8.155989300008514,
+          "current_bytes": 7408528,
+          "peak_bytes": 8179152,
+          "rss_before": 457555968,
+          "rss_after": 465235968,
+          "query_seconds": 0.13927590000093915,
+          "unique": 133917
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "cms",
+          "repetition": 0,
+          "seconds": 141.52942389999225,
+          "current_bytes": 10713760,
+          "peak_bytes": 12992488,
+          "rss_before": 458940416,
+          "rss_after": 472932352,
+          "mean_absolute_error": 0.030160472531493388,
+          "max_overestimate": 48,
+          "width": 267834,
+          "depth": 5
+        },
+        {
+          "family": "probabilistic",
+          "algorithm": "counter",
+          "repetition": 0,
+          "seconds": 6.567726699999184,
+          "current_bytes": 8644080,
+          "peak_bytes": 9995536,
+          "rss_before": 462217216,
+          "rss_after": 467726336,
+          "unique": 133917
+        },
+        {
+          "family": "sets",
+          "algorithm": "minhash_lsh",
+          "repetition": 0,
+          "seconds": 0.06614809999882709,
+          "current_bytes": 2386792,
+          "peak_bytes": 2390904,
+          "rss_before": 462479360,
+          "rss_after": 463626240,
+          "query_seconds": 0.009588499990059063,
+          "recall": 1.0,
+          "precision": 1.0,
+          "signature_mae": 0.0,
+          "bands": 16,
+          "num_perm": 64
+        },
+        {
+          "family": "sets",
+          "algorithm": "jaccard_exact",
+          "repetition": 0,
+          "seconds": 0.007568899993202649,
+          "current_bytes": 2400,
+          "peak_bytes": 22880,
+          "rss_before": 463626240,
+          "rss_after": 463626240,
+          "query_seconds": 0.007566400003270246
+        },
+        {
+          "family": "vectors",
+          "algorithm": "hnsw",
+          "repetition": 0,
+          "seconds": 0.557123300008243,
+          "current_bytes": 360216,
+          "peak_bytes": 371728,
+          "rss_before": 463626240,
+          "rss_after": 463626240,
+          "query_seconds": 0.003650400001788512,
+          "recall_at_5": 1.0,
+          "tie_aware_recall_at_5": 1.0,
+          "build_seconds": 0.5530892000097083,
+          "layers": 4,
+          "m": 8,
+          "ef_search": 32,
+          "ef_construction": 48
+        },
+        {
+          "family": "vectors",
+          "algorithm": "knn_exact",
+          "repetition": 0,
+          "seconds": 0.008247899997513741,
+          "current_bytes": 2400,
+          "peak_bytes": 12168,
+          "rss_before": 463626240,
+          "rss_after": 463626240,
+          "query_seconds": 0.008246099998359568
+        },
+        {
+          "family": "ranking",
+          "algorithm": "pagerank",
+          "repetition": 0,
+          "seconds": 0.005476500009535812,
+          "current_bytes": 6820,
+          "peak_bytes": 253894,
+          "rss_before": 463626240,
+          "rss_after": 463699968,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "16000004",
+            "1004788",
+            "31501013",
+            "10301494",
+            "1004258",
+            "29100071",
+            "29100011",
+            "1005116",
+            "17501048",
+            "29100051",
+            "1005014",
+            "1002542",
+            "1304409",
+            "15900065",
+            "3600700",
+            "16700794",
+            "1005105"
+          ],
+          "overlap_with_degree_at_20": 0.95
+        },
+        {
+          "family": "ranking",
+          "algorithm": "degree",
+          "repetition": 0,
+          "seconds": 0.001384699993650429,
+          "current_bytes": 336,
+          "peak_bytes": 28216,
+          "rss_before": 463699968,
+          "rss_after": 463699968,
+          "top_20": [
+            "1005115",
+            "1004767",
+            "1004856",
+            "1004258",
+            "1004788",
+            "10301494",
+            "16000004",
+            "31501013",
+            "29100011",
+            "29100071",
+            "1002542",
+            "1005014",
+            "1005116",
+            "1304409",
+            "15900065",
+            "16700794",
+            "17501048",
+            "29100051",
+            "3600700",
+            "1003898"
+          ]
+        },
+        {
+          "family": "communities",
+          "algorithm": "louvain",
+          "repetition": 0,
+          "seconds": 0.08484310000494588,
+          "current_bytes": 20524,
+          "peak_bytes": 809408,
+          "rss_before": 463699968,
+          "rss_after": 463769600,
+          "modularity": 0.8809777777777779,
+          "community_count": 68,
+          "community_sizes": [
+            36,
+            35,
+            33,
+            32,
+            31,
+            30,
+            28,
+            26,
+            25,
+            24,
+            20,
+            20,
+            19,
+            19,
+            18,
+            17,
+            15,
+            11,
+            9,
+            7,
+            7,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "communities",
+          "algorithm": "label_propagation",
+          "repetition": 0,
+          "seconds": 0.039546299987705424,
+          "current_bytes": 11000,
+          "peak_bytes": 127261,
+          "rss_before": 463769600,
+          "rss_after": 463769600,
+          "modularity": 0.6766839506172839,
+          "community_count": 176,
+          "community_sizes": [
+            13,
+            11,
+            11,
+            10,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "stability_ari": 1.0
+        },
+        {
+          "family": "base",
+          "algorithm": "fifo",
+          "repetition": 0,
+          "seconds": 4.709999484475702e-05,
+          "current_bytes": 3704,
+          "peak_bytes": 3704,
+          "rss_before": 463769600,
+          "rss_after": 463769600,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "preprocess",
+          "repetition": 0,
+          "seconds": 0.0011596999975154176,
+          "current_bytes": 12080,
+          "peak_bytes": 35864,
+          "rss_before": 463769600,
+          "rss_after": 463773696,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "heap",
+          "repetition": 0,
+          "seconds": 0.0004984999977750704,
+          "current_bytes": 14472,
+          "peak_bytes": 57832,
+          "rss_before": 463773696,
+          "rss_after": 463773696,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "cache",
+          "repetition": 0,
+          "seconds": 0.00037539999175351113,
+          "current_bytes": 98008,
+          "peak_bytes": 98928,
+          "rss_before": 463773696,
+          "rss_after": 463773696,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "bplus_disk",
+          "repetition": 0,
+          "seconds": 0.0496088000072632,
+          "current_bytes": 22920,
+          "peak_bytes": 27913,
+          "rss_before": 463773696,
+          "rss_after": 463773696,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "kd_tree",
+          "repetition": 0,
+          "seconds": 0.006705599997076206,
+          "current_bytes": 38496,
+          "peak_bytes": 40696,
+          "rss_before": 463773696,
+          "rss_after": 463773696,
+          "input_entities": 300
+        },
+        {
+          "family": "base",
+          "algorithm": "trie_topk",
+          "repetition": 0,
+          "seconds": 0.0008135000098263845,
+          "current_bytes": 48280,
+          "peak_bytes": 72807,
+          "rss_before": 463773696,
+          "rss_after": 463773696,
+          "input_entities": 300
+        }
+      ],
+      "summary": {
+        "preprocess": {
+          "rss_after": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463769600,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 12080,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 35864,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0011596999975154176,
+            "stdev": 0.0
+          }
+        },
+        "knn_exact": {
+          "rss_after": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 12168,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.008246099998359568,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.008247899997513741,
+            "stdev": 0.0
+          }
+        },
+        "hnsw": {
+          "m": {
+            "mean": 8,
+            "stdev": 0.0
+          },
+          "layers": {
+            "mean": 4,
+            "stdev": 0.0
+          },
+          "recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "ef_search": {
+            "mean": 32,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 360216,
+            "stdev": 0.0
+          },
+          "ef_construction": {
+            "mean": 48,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 371728,
+            "stdev": 0.0
+          },
+          "tie_aware_recall_at_5": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "build_seconds": {
+            "mean": 0.5530892000097083,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.003650400001788512,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.557123300008243,
+            "stdev": 0.0
+          }
+        },
+        "degree": {
+          "rss_after": {
+            "mean": 463699968,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463699968,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 336,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 28216,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.001384699993650429,
+            "stdev": 0.0
+          }
+        },
+        "set": {
+          "rss_after": {
+            "mean": 465235968,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 457555968,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 7408528,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 8179152,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 133917,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.13927590000093915,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 8.155989300008514,
+            "stdev": 0.0
+          }
+        },
+        "bplus_disk": {
+          "rss_after": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 22920,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 27913,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0496088000072632,
+            "stdev": 0.0
+          }
+        },
+        "heap": {
+          "rss_after": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 14472,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 57832,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0004984999977750704,
+            "stdev": 0.0
+          }
+        },
+        "cache": {
+          "rss_after": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 98008,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 98928,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.00037539999175351113,
+            "stdev": 0.0
+          }
+        },
+        "louvain": {
+          "rss_after": {
+            "mean": 463769600,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463699968,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 20524,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 809408,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 68,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.8809777777777779,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.08484310000494588,
+            "stdev": 0.0
+          }
+        },
+        "counter": {
+          "rss_after": {
+            "mean": 467726336,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 462217216,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 8644080,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 9995536,
+            "stdev": 0.0
+          },
+          "unique": {
+            "mean": 133917,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 6.567726699999184,
+            "stdev": 0.0
+          }
+        },
+        "cms": {
+          "max_overestimate": {
+            "mean": 48,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 472932352,
+            "stdev": 0.0
+          },
+          "depth": {
+            "mean": 5,
+            "stdev": 0.0
+          },
+          "width": {
+            "mean": 267834,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 458940416,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 10713760,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 12992488,
+            "stdev": 0.0
+          },
+          "mean_absolute_error": {
+            "mean": 0.030160472531493388,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 141.52942389999225,
+            "stdev": 0.0
+          }
+        },
+        "trie_topk": {
+          "rss_after": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 48280,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 72807,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.0008135000098263845,
+            "stdev": 0.0
+          }
+        },
+        "jaccard_exact": {
+          "rss_after": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2400,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 22880,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.007566400003270246,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.007568899993202649,
+            "stdev": 0.0
+          }
+        },
+        "label_propagation": {
+          "rss_after": {
+            "mean": 463769600,
+            "stdev": 0.0
+          },
+          "stability_ari": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463769600,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 11000,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 127261,
+            "stdev": 0.0
+          },
+          "community_count": {
+            "mean": 176,
+            "stdev": 0.0
+          },
+          "modularity": {
+            "mean": 0.6766839506172839,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.039546299987705424,
+            "stdev": 0.0
+          }
+        },
+        "bloom": {
+          "fpr": {
+            "mean": 0.01002859980435643,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 457555968,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 457596928,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 161020,
+            "stdev": 0.0
+          },
+          "m_bits": {
+            "mean": 1283603,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 161527,
+            "stdev": 0.0
+          },
+          "k_hashes": {
+            "mean": 7,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 2.0887961000116775,
+            "stdev": 0.0
+          },
+          "false_negatives": {
+            "mean": 0,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 127.50745409999217,
+            "stdev": 0.0
+          }
+        },
+        "fifo": {
+          "rss_after": {
+            "mean": 463769600,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463769600,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 3704,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 3704,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 4.709999484475702e-05,
+            "stdev": 0.0
+          }
+        },
+        "pagerank": {
+          "rss_after": {
+            "mean": 463699968,
+            "stdev": 0.0
+          },
+          "overlap_with_degree_at_20": {
+            "mean": 0.95,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 6820,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 253894,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.005476500009535812,
+            "stdev": 0.0
+          }
+        },
+        "kd_tree": {
+          "rss_after": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 463773696,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 38496,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 40696,
+            "stdev": 0.0
+          },
+          "input_entities": {
+            "mean": 300,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.006705599997076206,
+            "stdev": 0.0
+          }
+        },
+        "minhash_lsh": {
+          "signature_mae": {
+            "mean": 0.0,
+            "stdev": 0.0
+          },
+          "bands": {
+            "mean": 16,
+            "stdev": 0.0
+          },
+          "rss_after": {
+            "mean": 463626240,
+            "stdev": 0.0
+          },
+          "num_perm": {
+            "mean": 64,
+            "stdev": 0.0
+          },
+          "rss_before": {
+            "mean": 462479360,
+            "stdev": 0.0
+          },
+          "current_bytes": {
+            "mean": 2386792,
+            "stdev": 0.0
+          },
+          "peak_bytes": {
+            "mean": 2390904,
+            "stdev": 0.0
+          },
+          "precision": {
+            "mean": 1.0,
+            "stdev": 0.0
+          },
+          "query_seconds": {
+            "mean": 0.009588499990059063,
+            "stdev": 0.0
+          },
+          "seconds": {
+            "mean": 0.06614809999882709,
+            "stdev": 0.0
+          },
+          "recall": {
+            "mean": 1.0,
+            "stdev": 0.0
+          }
+        }
+      }
+    }
+  ]
+}
