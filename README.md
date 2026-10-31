@@ -1,8 +1,14 @@
 # Pipeline de comercio electrónico
 
-Proyecto de Estructuras de Datos y Algoritmos · Maestría en Ciencia de Datos e Inteligencia Artificial · UTEC 2026-2.
+Estructuras de Datos y Algoritmos · Maestría en Ciencia de Datos e Inteligencia Artificial · **UTEC 2026-2**
 
 Procesa eventos de navegación y compra en microlotes a través de diez etapas. Mantiene índices entre lotes y produce recomendaciones, alertas verificadas, autocompletado y rankings. El visor web muestra las entradas y salidas de cada etapa durante la ejecución.
+
+[Informe PDF](docs/Proyecto_Final_Grupo4.pdf) · [Presentación](docs/Presentacion_Grupo4.pptx) · [Guía técnica](docs/GUIA_TECNICA.md)
+
+![Visor del pipeline durante una ejecución real: etapas, flujo de datos, entrada de la etapa activa y consola.](docs/images/frontend.png)
+
+*Visor local con pausa de 0,8 s por etapa. Las partículas indican la etapa activa; el panel permite inspeccionar sus datos.*
 
 ## Instalación y ejecución
 
@@ -28,6 +34,12 @@ Por defecto se leen los 1.000 eventos completos en lotes de 500 y se añaden och
 ```powershell
 python main.py --sin-visor --sin-escenario
 ```
+
+## Arquitectura
+
+![Arquitectura de las diez etapas del pipeline, con flujo secuencial, estado en disco, índices en memoria y servicio de resultados.](docs/images/pipeline_architecture.svg)
+
+El motor ejecuta las etapas de **0 a 9** por cada lote. Las colas entregan trabajo pendiente; los índices conservan información para consultas posteriores. Los eventos que requieren revisión se guardan y los aceptados actualizan similitud y co-compra. [Abrir diagrama en alta resolución](docs/images/pipeline_architecture.png).
 
 ## Notebooks
 
@@ -66,7 +78,7 @@ output/escalabilidad/    Exploración de las escalas mayores
 data/                   Datos y bases locales, excluidos de Git
 ```
 
-Entregables: [informe PDF](docs/Proyecto_Final_Grupo4.pdf), [presentación](docs/Presentacion_Grupo4.pptx) y [diagrama del pipeline](docs/pipeline_architecture.png). La [guía técnica](docs/GUIA_TECNICA.md) explica el flujo, las estructuras, el método experimental y las fuentes.
+La [guía técnica](docs/GUIA_TECNICA.md) desarrolla los contratos entre etapas, las estructuras seleccionadas, la metodología experimental y las referencias bibliográficas.
 
 ## Responsabilidades del equipo
 
