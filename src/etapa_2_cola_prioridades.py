@@ -1,20 +1,33 @@
 import heapq
+from itertools import count
+
+# Contador global para asegurar estabilidad estricta
+tie_breaker = count()
 
 
 class EventoPriorizado:
-  """Clase auxiliar para definir la jerarquía de prioridad en la MinHeap."""
+  """Clase auxiliar para definir la jerarquía de prioridad en la MinHeap
 
-  def __init__(self, priority, timestamp, event):
+  con clave compuesta: (prioridad, timestamp, contador).
+  """
+
+  def __init__(self, priority, timestamp, count_id, event):
     self.priority = priority
     self.timestamp = timestamp
+    self.count_id = count_id
     self.event = event
 
   def __lt__(self, other):
-    # Si las prioridades son distintas, menor número indica mayor prioridad (1 > 2 > 3...)
+    # 1. Compara por prioridad (menor número = mayor prioridad)
     if self.priority != other.priority:
       return self.priority < other.priority
-    # En caso de empate en prioridad, se aplica política FIFO basada en el timestamp más antiguo
-    return str(self.timestamp) < str(other.timestamp)
+
+    # 2. Si empatan en prioridad, compara por marca de tiempo (FIFO cronológico)
+    if str(self.timestamp) != str(other.timestamp):
+      return str(self.timestamp) < str(other.timestamp)
+
+    # 3. Si empatan en prioridad y timestamp, desempata con el contador de llegada
+    return self.count_id < other.count_id
 
 
 class ColaPrioridadesHeap:
@@ -24,18 +37,17 @@ class ColaPrioridadesHeap:
   """
 
   def __init__(self):
-    self.heap = []  # Estructura de MinHeap subyacente basada en listas de Python
+    self.heap = []
 
   def push(self, event):
     priority = event.get('priority', 5)
     timestamp = event.get('event_time', '')
-    item = EventoPriorizado(priority, timestamp, event)
-    # Inserta el elemento manteniendo la propiedad de ordenamiento del MinHeap -> O(log N)
+    # Se añade el contador único para garantizar estabilidad absoluta
+    item = EventoPriorizado(priority, timestamp, next(tie_breaker), event)
     heapq.heappush(self.heap, item)
 
   def pop(self):
     if not self.is_empty():
-      # Extrae y retorna el elemento con mayor prioridad (raíz del MinHeap) -> O(log N)
       item = heapq.heappop(self.heap)
       return item.event
     return None
