@@ -64,19 +64,29 @@ Los resultados incluidos contienen **100 repeticiones en 1K** y una exploración
 
 ## Estructura y entregables
 
-```text
-main.py                 Entrada del sistema y del visor
-benchmarks.py           Experimentos por estructura y familia
-requirements.txt        Dependencias del sistema y los notebooks
-src/                    Orquestación, lectura y diez etapas
-web/                    Servidor local y frontend en static/
-notebooks/              Demostración y análisis experimental
-tests/                  Pruebas de estructuras, integración y servidor
-docs/                   Informe PDF, presentación, diagrama y guía técnica
-output/benchmarks/      Mediciones de 1K y gráficos
-output/escalabilidad/    Exploración de las escalas mayores
-data/                   Datos y bases locales, excluidos de Git
-```
+Los datos de entrada se guardan en `data/`, el código de `src/` los procesa y los resultados se escriben en `output/`. El visor de `web/` permite observar esa ejecución.
+
+| Carpeta | Qué contiene | Cuándo consultarla |
+| --- | --- | --- |
+| `src/` | El motor del sistema: `stream_reader.py` lee los lotes, `pipeline.py` coordina el procesamiento y `etapa_0_...py` a `etapa_9_...py` implementan las estructuras y algoritmos. | Para entender o modificar cómo se procesan los eventos. |
+| `web/` | El servidor local (`server.py`) y los archivos de la interfaz en `static/`: HTML define la página, CSS su apariencia y JavaScript sus interacciones. | Para cambiar el visor, las animaciones o la comunicación con Python. |
+| `notebooks/` | Dos cuadernos ejecutables: el primero demuestra el pipeline y el segundo analiza las mediciones experimentales. | Para explorar resultados paso a paso con tablas, gráficos y selectores. |
+| `tests/` | Pruebas automáticas de las estructuras, la preparación de datos y el servidor. Comprueban, por ejemplo, que se eliminen duplicados y que los índices devuelvan resultados correctos. | Para verificar que un cambio no haya roto el funcionamiento del sistema. |
+| `docs/` | El informe PDF, la presentación y la guía técnica. `images/` contiene la captura del visor y el diagrama que aparecen en este README. | Para revisar los entregables y la explicación del diseño. |
+| `data/` | Los CSV originales en `raw/`, los cortes Parquet preparados y las bases SQLite generadas por ejecución en `runtime/`. Se conserva localmente y está excluida de Git. | Para colocar el dataset o inspeccionar los datos persistidos. |
+| `output/` | Mediciones, gráficos y resultados producidos por el código. Las subcarpetas se detallan a continuación. | Para consultar lo que produjo una ejecución o un experimento. |
+
+Dentro de `output/`:
+
+| Subcarpeta | Qué guarda |
+| --- | --- |
+| `benchmarks/` | `report.json` con las mediciones de 1K y los gráficos comparativos. Incluye tiempos, memoria, calidad, parámetros y repeticiones. |
+| `escalabilidad/` | `report.json` y gráficos de la exploración de 10K, 100K, 1M y 10M. Registra las poblaciones efectivas y los recortes; su alcance se explica en la sección Experimentos. |
+| `results/` | `last_pipeline.json`, con contadores, recomendaciones y alertas de la última ejecución del pipeline. Se genera localmente y no se sube a Git. |
+
+Los archivos de la raíz sirven para iniciar el trabajo: `main.py` ejecuta el pipeline y abre el servidor del visor; `benchmarks.py` mide los algoritmos; `requirements.txt` enumera las librerías necesarias.
+
+Al trabajar localmente también pueden aparecer `.venv/` (el entorno Python con las librerías), `tmp/` (auxiliares y respaldos de trabajo) y `__pycache__/` (caché automática de Python). Están excluidas de Git y no forman parte del entregable. Las carpetas de resultados locales se crean cuando se ejecutan los procesos correspondientes.
 
 La [guía técnica](docs/GUIA_TECNICA.md) desarrolla los contratos entre etapas, las estructuras seleccionadas, la metodología experimental y las referencias bibliográficas.
 
