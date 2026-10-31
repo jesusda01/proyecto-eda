@@ -10,6 +10,7 @@ __pycache__/
 data/
 tmp/
 output/results/
+output/logs/
 output/benchmarks_smoke/
 
 # Temporales de edición y artefactos locales

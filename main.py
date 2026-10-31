@@ -77,7 +77,15 @@ def cli():
     )
     parser.add_argument("--sin-visor", action="store_true")
     parser.add_argument("--sin-escenario", action="store_true")
+    parser.add_argument("--port", type=int, default=8765, help="Puerto local del visor (predeterminado: 8765).")
+    parser.add_argument("--diagnostico", action="store_true", help="Comprueba el visor abierto sin ejecutar el pipeline.")
     args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        parser.error("--port debe estar entre 1 y 65535.")
+    if args.diagnostico:
+        from web.diagnostics import diagnose_dashboard
+
+        raise SystemExit(diagnose_dashboard(args.port))
     run = partial(
         run_integrated_pipeline,
         input_path=args.dataset,
@@ -90,7 +98,7 @@ def cli():
     else:
         from web.server import launch_dashboard
 
-        launch_dashboard(run_function=run, auto_run=True)
+        launch_dashboard(run_function=run, auto_run=True, port=args.port)
 
 
 if __name__ == "__main__":

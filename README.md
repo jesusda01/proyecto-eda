@@ -35,6 +35,26 @@ Por defecto se leen los 1.000 eventos completos en lotes de 500 y se añaden och
 python main.py --sin-visor --sin-escenario
 ```
 
+### Si el visor no abre
+
+El mensaje **Visor listo** aparece después de comprobar por HTTP el servidor, la página, el CSS y el JavaScript. No comprueba el funcionamiento del navegador. La dirección `127.0.0.1` corresponde a la computadora donde se ejecuta Python; no requiere publicar el sitio ni configurar el router.
+
+Mantén la terminal de `main.py` abierta y ejecuta en otra terminal:
+
+```powershell
+python main.py --diagnostico
+```
+
+El diagnóstico informa si el servidor responde, su PID y el estado del pipeline. Si responde pero la página no abre, prueba la misma URL en Chrome o Edge. Si hay un puerto ocupado, el programa identifica el problema; puedes cerrar el visor anterior o elegir otro puerto:
+
+```powershell
+python main.py --port 8766
+# En otra terminal, para comprobar ese mismo puerto:
+python main.py --diagnostico --port 8766
+```
+
+Abre la URL que indique el programa. Los mensajes y errores técnicos se guardan localmente en `output/logs/visor.log`. Al pedir soporte, comparte la salida del diagnóstico y el error del log, revisando previamente cualquier ruta o dato que no quieras compartir. Al pulsar `Ctrl+C`, el servidor se cierra y la URL deja de responder.
+
 ## Arquitectura
 
 ![Arquitectura de las diez etapas del pipeline, con flujo secuencial, estado en disco, índices en memoria y servicio de resultados.](docs/images/pipeline_architecture.svg)
@@ -83,6 +103,7 @@ Dentro de `output/`:
 | `benchmarks/` | `report.json` con las mediciones de 1K y los gráficos comparativos. Incluye tiempos, memoria, calidad, parámetros y repeticiones. |
 | `escalabilidad/` | `report.json` y gráficos de la exploración de 10K, 100K, 1M y 10M. Registra las poblaciones efectivas y los recortes; su alcance se explica en la sección Experimentos. |
 | `results/` | `last_pipeline.json`, con contadores, recomendaciones y alertas de la última ejecución del pipeline. Se genera localmente y no se sube a Git. |
+| `logs/` | `visor.log`, con arranques, actividad y errores técnicos del servidor y del pipeline. Es local, tiene rotación por tamaño y está excluido de Git. |
 
 Los archivos de la raíz sirven para iniciar el trabajo: `main.py` ejecuta el pipeline y abre el servidor del visor; `benchmarks.py` mide los algoritmos; `requirements.txt` enumera las librerías necesarias.
 

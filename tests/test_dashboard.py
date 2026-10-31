@@ -1,7 +1,6 @@
 """Prueba HTTP de pausa, parada y reinicio con observaciones explícitas."""
 
 import json
-import threading
 import time
 import unittest
 from urllib.request import Request, urlopen
@@ -21,10 +20,7 @@ class DashboardTest(unittest.TestCase):
                 finally:
                     engine.close()
 
-            server = dashboard.ViewerServer(("127.0.0.1", 0), dashboard.Handler)
-            server.run_function = run
-            thread = threading.Thread(target=server.serve_forever, daemon=True)
-            thread.start()
+            server, thread = dashboard.start_verified_server(0, run)
             url = f"http://127.0.0.1:{server.server_port}"
 
             def request(path, payload=None):
@@ -46,6 +42,9 @@ class DashboardTest(unittest.TestCase):
                 self.fail("No se alcanzó el estado esperado.")
 
             try:
+                health = request("/api/health")
+                self.assertEqual(health["service"], dashboard.SERVICE_ID)
+                self.assertEqual(health["version"], dashboard.VIEWER_VERSION)
                 for path, kind in (("/", "text/html"), ("/dashboard.css", "text/css"), ("/dashboard.js", "text/javascript"), ("/dashboard-popover.js", "text/javascript")):
                     with urlopen(url + path, timeout=3) as response:
                         self.assertEqual(response.status, 200)
@@ -62,6 +61,8 @@ class DashboardTest(unittest.TestCase):
                 state = wait(lambda s: s["status"] in ("done", "error"))
                 self.assertEqual(state["status"], "done", state.get("error"))
                 self.assertEqual(len(state["stages"]), 10)
+                self.assertEqual(state["version"], dashboard.VIEWER_VERSION)
+                self.assertEqual(request("/api/health")["version"], dashboard.VIEWER_VERSION)
             finally:
                 server.shutdown()
                 server.server_close()
