@@ -9,7 +9,7 @@ from .stream_reader import stable_id
 
 
 def process_csv_to_parquet(
-    csv_input_path="2019-Nov.csv", output_dir="data", target_10m=10_000_000, chunk_size=50000
+    csv_input_path="data/raw/2019-Nov.csv", output_dir="data", target_10m=10_000_000, chunk_size=50000
 ):
     """Escribe cortes con tamaños honestos; nunca inventa un CSV ausente.
 
@@ -107,7 +107,7 @@ def process_csv_to_parquet(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--csv", default="2019-Nov.csv")
+    parser.add_argument("--csv", default="data/raw/2019-Nov.csv")
     parser.add_argument("--output", default="data")
     parser.add_argument("--rows", type=int, default=1000)
     args = parser.parse_args()

@@ -88,7 +88,7 @@ def cli():
     if args.sin_visor:
         run()
     else:
-        from dashboard import launch_dashboard
+        from web.server import launch_dashboard
 
         launch_dashboard(run_function=run, auto_run=True)
 

@@ -1,7 +1,7 @@
 """MinHash con bandas LSH y HNSW multicapa implementados en Python.
 
-No son envoltorios de fuerza bruta: LSH recupera candidatos de buckets y HNSW
-navega un grafo de proximidad. Las referencias exactas se evalúan por separado.
+LSH recupera candidatos de buckets y HNSW navega un grafo de proximidad.
+Las referencias exactas se evalúan por separado.
 """
 
 from collections import defaultdict
@@ -13,8 +13,8 @@ import mmh3
 import numpy as np
 
 
-class MinHashLSHSimulator:
-    """Nombre conservado por compatibilidad; ahora incluye índice LSH real."""
+class MinHashLSH:
+    """Índice de conjuntos con firmas MinHash y recuperación por bandas LSH."""
 
     def __init__(self, num_perm=64, bands=16, threshold=0.3):
         if num_perm < 1 or bands < 1 or num_perm % bands or not 0 <= threshold <= 1:

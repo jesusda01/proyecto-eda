@@ -32,7 +32,7 @@ import pyarrow.parquet as pq
 from sklearn.metrics import adjusted_rand_score
 
 from src.etapa_6_filtrado_probabilistico import BloomFilter, CountMinSketch
-from src.etapa_7_similitud_aproximada import HNSWApproximateSearch, MinHashLSHSimulator
+from src.etapa_7_similitud_aproximada import HNSWApproximateSearch, MinHashLSH
 from src.etapa_5_indice_multidimensional import IndiceMultidimensionalKDTree
 from src.stream_reader import product_vector
 from src.etapa_0_ingesta_buffer import IngestaBufferFIFO
@@ -190,7 +190,7 @@ def evaluate(path, repetitions, max_entities=2000, queries=10):
             for qid, basket in set_queries:
                 matches = sorted(
                     (
-                        (MinHashLSHSimulator.exact_jaccard(basket, other), identifier)
+                        (MinHashLSH.exact_jaccard(basket, other), identifier)
                         for identifier, other in sets.items()
                         if identifier != qid
                     ),
@@ -202,7 +202,7 @@ def evaluate(path, repetitions, max_entities=2000, queries=10):
         ground_sets = exact_sets()
 
         def lsh_run():
-            index = MinHashLSHSimulator()
+            index = MinHashLSH()
             for identifier, basket in sets.items():
                 index.insert(identifier, basket)
             build_done = time.perf_counter()
@@ -519,46 +519,47 @@ def run_benchmarks(
         (target / "report.json").write_text(
             json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-    fig, ax = plt.subplots(figsize=(8, 5))
-    for algorithm in ("bloom", "set", "cms", "counter"):
-        x = [d["events"] for d in report["datasets"]]
-        y = [d["summary"][algorithm]["seconds"]["mean"] for d in report["datasets"]]
-        ax.loglog(x, y, "o-", label=algorithm)
-    ax.set(
-        xlabel="Eventos realmente insertados",
-        ylabel="Construcción + consultas (s)",
-        title="Escalabilidad de estructuras probabilísticas y controles",
-    )
-    ax.legend()
-    ax.grid(True, alpha=0.2)
-    fig.tight_layout()
-    fig.savefig(target / "scalability.png", dpi=150)
-    plt.close(fig)
+    save_benchmark_plots(report, target)
+    return report
+
+
+def save_benchmark_plots(report, target):
+    """Usa barras para una escala y curvas solo si crece la población real."""
+    target = Path(target)
+    target.mkdir(parents=True, exist_ok=True)
+    datasets = sorted(report["datasets"], key=lambda item: item["events"])
     for family, algorithms, population in [
+        ("probabilistic", ("bloom", "set", "cms", "counter"), "events"),
         ("sets", ("minhash_lsh", "jaccard_exact"), "sets"),
         ("vectors", ("hnsw", "knn_exact"), "vectors"),
         ("ranking", ("pagerank", "degree"), "nodes"),
         ("communities", ("louvain", "label_propagation"), "nodes"),
     ]:
         fig, ax = plt.subplots(figsize=(8, 5))
-        for algorithm in algorithms:
-            ax.loglog(
-                [d[population] for d in report["datasets"]],
-                [max(1e-9, d["summary"][algorithm]["seconds"]["mean"]) for d in report["datasets"]],
-                "o-",
-                label=algorithm,
-            )
-        ax.set(
-            xlabel=f"Población analítica real: {population}",
-            ylabel="Carga experimental total (s)",
-            title=f"Comparación de {family}",
-        )
-        ax.legend()
+        if len(datasets) == 1:
+            summary = datasets[0]["summary"]
+            ax.bar(algorithms, [summary[a]["seconds"]["mean"] * 1000 for a in algorithms],
+                   yerr=[summary[a]["seconds"]["stdev"] * 1000 for a in algorithms],
+                   capsize=4, color="#087e8b")
+            ax.set(xlabel="Algoritmo", ylabel="Tiempo total medio (ms)",
+                   title=f"Comparación · {datasets[0]['events']:,} eventos · {datasets[0]['repetitions']} repeticiones")
+        else:
+            x = [d[population] for d in datasets]
+            for algorithm in algorithms:
+                y = [max(1e-9, d["summary"][algorithm]["seconds"]["mean"]) for d in datasets]
+                if len(set(x)) > 1:
+                    ax.loglog(x, y, "o-", label=algorithm)
+                else:
+                    ax.scatter(x, y, label=algorithm, alpha=0.7)
+                    ax.set_yscale("log")
+            ax.set(xlabel=f"Población efectiva: {population}", ylabel="Tiempo total (s)",
+                   title="Escalabilidad" if len(set(x)) > 1 else "Población constante · no permite inferir escalabilidad")
+            ax.legend()
         ax.grid(True, alpha=0.2)
         fig.tight_layout()
-        fig.savefig(target / f"scalability_{family}.png", dpi=150)
+        prefix = "comparison" if len(datasets) == 1 else "scalability"
+        fig.savefig(target / f"{prefix}_{family}.png", dpi=150)
         plt.close(fig)
-    return report
 
 
 if __name__ == "__main__":

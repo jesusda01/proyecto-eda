@@ -11,3 +11,15 @@ data/
 tmp/
 output/results/
 output/benchmarks_smoke/
+
+# Temporales de edición y artefactos locales
+.chart-data-*/
+~$*
+*.tmp
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+output/notebook_runs/
+output/presentations/
+output/pdf/
+.pytest_cache/
+.ruff_cache/

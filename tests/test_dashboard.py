@@ -6,7 +6,7 @@ import time
 import unittest
 from urllib.request import Request, urlopen
 from tempfile import TemporaryDirectory
-import dashboard
+from web import server as dashboard
 from src.pipeline import EcommercePipeline, PipelineConfig
 
 
@@ -46,6 +46,11 @@ class DashboardTest(unittest.TestCase):
                 self.fail("No se alcanzó el estado esperado.")
 
             try:
+                for path, kind in (("/", "text/html"), ("/dashboard.css", "text/css"), ("/dashboard.js", "text/javascript"), ("/dashboard-popover.js", "text/javascript")):
+                    with urlopen(url + path, timeout=3) as response:
+                        self.assertEqual(response.status, 200)
+                        self.assertIn(kind, response.headers["Content-Type"])
+                        self.assertTrue(response.read())
                 request("/api/run", {"delay": 2})
                 wait(lambda s: s["active"] == 0)
                 time.sleep(0.1)

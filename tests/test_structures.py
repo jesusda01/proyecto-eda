@@ -12,7 +12,7 @@ from src.etapa_3_almacenamiento_lookup_cache import AlmacenamientoLookupCache
 from src.etapa_4_indexacion_principal import IndexacionPrincipalBPlusTree
 from src.etapa_5_indice_multidimensional import IndiceMultidimensionalKDTree
 from src.etapa_6_filtrado_probabilistico import BloomFilter, CountMinSketch, RiskWindow
-from src.etapa_7_similitud_aproximada import HNSWApproximateSearch, MinHashLSHSimulator
+from src.etapa_7_similitud_aproximada import HNSWApproximateSearch, MinHashLSH
 from src.etapa_8_grafo_dominio import GrafoDominioRed
 from src.pipeline import EcommercePipeline, PipelineConfig
 from src.stream_reader import demo_scenario, read_parquet_batches
@@ -110,7 +110,7 @@ class StructuresTest(unittest.TestCase):
         self.assertFalse(result["requires_review"])
 
     def test_lsh_updates_and_removal(self):
-        lsh = MinHashLSHSimulator()
+        lsh = MinHashLSH()
         lsh.insert("a", {"1", "2", "3"})
         lsh.insert("b", {"1", "2", "3"})
         lsh.insert("c", {"9"})

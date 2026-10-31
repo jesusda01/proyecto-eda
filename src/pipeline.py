@@ -19,7 +19,7 @@ from .etapa_3_almacenamiento_lookup_cache import AlmacenamientoLookupCache
 from .etapa_4_indexacion_principal import IndexacionPrincipalBPlusTree
 from .etapa_5_indice_multidimensional import IndiceMultidimensionalKDTree
 from .etapa_6_filtrado_probabilistico import RiskWindow
-from .etapa_7_similitud_aproximada import HNSWApproximateSearch, MinHashLSHSimulator
+from .etapa_7_similitud_aproximada import HNSWApproximateSearch, MinHashLSH
 from .etapa_8_grafo_dominio import GrafoDominioRed
 from .etapa_9_servicio_visualizacion import TopKAnalytics, TrieAutocompletado
 from .stream_reader import product_vector
@@ -66,7 +66,7 @@ class EcommercePipeline:
         self.price_index = IndexacionPrincipalBPlusTree(path=self.directory / "prices.sqlite")
         self.risk = RiskWindow(self.config.window_seconds, self.config.alert_threshold)
         self.ann = HNSWApproximateSearch(seed=self.config.seed)
-        self.lsh = MinHashLSHSimulator()
+        self.lsh = MinHashLSH()
         self.graph = GrafoDominioRed(path=self.directory / "orders.sqlite")
         self.trie, self.top = TrieAutocompletado(), TopKAnalytics(self.config.top_k)
         self.catalog, self.baskets = {}, OrderedDict()

@@ -18,10 +18,11 @@ from urllib.parse import urlparse, parse_qs
 
 from src.pipeline import PipelineCancelled
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 LOCK = threading.Lock()
 STOP = threading.Event()
-STATE = {"status": "idle", "active": None, "stages": {}, "logs": [], "version": 3}
+STATE = {"status": "idle", "active": None, "stages": {}, "logs": [], "version": 4}
 
 
 def safe(value):
@@ -134,13 +135,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         url = urlparse(self.path)
         files = {
-            "/": ("dashboard.html", "text/html"),
+            "/": ("index.html", "text/html"),
             "/dashboard.css": ("dashboard.css", "text/css"),
+            "/dashboard.js": ("dashboard.js", "text/javascript"),
             "/dashboard-popover.js": ("dashboard-popover.js", "text/javascript"),
         }
         if url.path in files:
             name, kind = files[url.path]
-            self.respond(200, (ROOT / name).read_bytes(), kind + "; charset=utf-8")
+            self.respond(200, (STATIC_DIR / name).read_bytes(), kind + "; charset=utf-8")
         elif url.path == "/api/state":
             with LOCK:
                 result = copy.deepcopy(STATE)
@@ -222,7 +224,7 @@ def launch_dashboard(run_function=None, auto_run=False):
             raise SystemExit(f"Ya existe un visor o servicio en {url}.")
         with urllib.request.urlopen(url + "/api/state", timeout=5) as response:
             remote = json.load(response)
-        if remote.get("version") != 3:
+        if remote.get("version") != 4:
             raise SystemExit("Cierra el visor anterior con Ctrl+C y vuelve a ejecutar main.py.")
         configuration = getattr(run_function, "keywords", {})
         body = json.dumps({"delay": 0, "config": configuration}).encode()
