@@ -4,7 +4,7 @@ Estructuras de Datos y Algoritmos · Maestría en Ciencia de Datos e Inteligenci
 
 Procesa eventos de navegación y compra en microlotes a través de diez etapas. Mantiene índices entre lotes y produce recomendaciones, alertas verificadas, autocompletado y rankings. El visor web muestra las entradas y salidas de cada etapa durante la ejecución.
 
-[Informe PDF](docs/Proyecto_Final_Grupo4.pdf) · [Presentación](docs/Presentacion_Grupo4.pptx) · [Guía técnica](docs/GUIA_TECNICA.md)
+[Informe PDF](docs/Proyecto_Final_Grupo4.pdf) · [Presentación](docs/Proyecto_Final_Grupo4_Exposicion_UTEC.pptx) · [Guía técnica](docs/GUIA_TECNICA.md)
 
 ![Visor del pipeline durante una ejecución real: etapas, flujo de datos, entrada de la etapa activa y consola.](docs/images/frontend.png)
 
