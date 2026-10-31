@@ -1,56 +1,101 @@
-import numpy as np
+"""Validación, ordenación y búsqueda binaria entre lotes."""
+
+from bisect import bisect_left
+from datetime import datetime, timezone
+import math
+from pathlib import Path
+import sqlite3
+
+
+def parse_time(value):
+    if isinstance(value, datetime):
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+    result = datetime.fromisoformat(str(value).replace(" UTC", "+00:00").replace("Z", "+00:00"))
+    return (
+        result.replace(tzinfo=timezone.utc)
+        if result.tzinfo is None
+        else result.astimezone(timezone.utc)
+    )
 
 
 class PreprocesamientoLotes:
-  """Etapa 1: Preprocesamiento por lotes
+    """Subconjunto de IDs ordenado y acotado; SQLite recuerda todo el historial.
 
-  Estructuras: Timsort O(N log N) + Búsqueda Binaria en C O(log N) (NumPy).
-  """
+    El lote se ordena en O(b log b). La consulta al historial usa búsqueda
+    binaria; actualizar el historial y escribir en disco tiene costos aparte.
+    """
 
-  def __init__(self):
-    # Almacén histórico de IDs procesados en un array contiguo de NumPy para eficiencia en RAM
-    self.processed_ids = np.array([], dtype=object)
+    def __init__(self, history_path=None, history_limit=100000):
+        if history_limit < 1:
+            raise ValueError("history_limit debe ser positivo.")
+        if history_path:
+            Path(history_path).parent.mkdir(parents=True, exist_ok=True)
+        self.db = sqlite3.connect(
+            str(history_path) if history_path else ":memory:", check_same_thread=False
+        )
+        self.db.execute("CREATE TABLE IF NOT EXISTS seen (id TEXT PRIMARY KEY)")
+        self.processed_ids, self.history_limit = [], history_limit
+        self.rejected, self.duplicates = [], 0
 
-  def sort_batch(self, batch, key='event_time', reverse=False):
-    # Ordena el lote usando Timsort (algoritmo híbrido MergeSort + InsertionSort nativo de Python) O(N log N)
-    return sorted(batch, key=lambda x: x[key], reverse=reverse)
+    def validate_batch(self, batch):
+        valid, self.rejected = [], []
+        for raw in batch:
+            try:
+                if not isinstance(raw, dict):
+                    raise ValueError("El evento no es un diccionario.")
+                event = raw.copy()
+                for key in ("event_id", "product_id", "user_id", "event_type", "event_time"):
+                    if event.get(key) is None or str(event[key]).strip() == "":
+                        raise ValueError(f"Falta {key}.")
+                for key in ("event_id", "product_id", "user_id"):
+                    event[key] = str(event[key])
+                event["price"] = float(event["price"])
+                if not math.isfinite(event["price"]) or event["price"] < 0:
+                    raise ValueError("Precio inválido.")
+                event["event_time"] = parse_time(event["event_time"]).isoformat()
+                for key in ("brand", "category_code"):
+                    value = event.get(key)
+                    event[key] = (
+                        ""
+                        if value is None or (isinstance(value, float) and math.isnan(value))
+                        else str(value)
+                    )
+                valid.append(event)
+            except (ValueError, KeyError, TypeError, OverflowError) as error:
+                self.rejected.append(
+                    {
+                        "event_id": raw.get("event_id") if isinstance(raw, dict) else None,
+                        "reason": str(error),
+                    }
+                )
+        return valid
 
-  def deduplicate_batch(self, batch):
-    if not batch:
-      return []
+    def deduplicate_batch(self, batch):
+        unique, self.duplicates = {}, 0
+        for event in sorted(batch, key=lambda e: str(e["event_id"])):
+            identifier = str(event["event_id"])
+            i = bisect_left(self.processed_ids, identifier)
+            seen = i < len(self.processed_ids) and self.processed_ids[i] == identifier
+            if (
+                identifier in unique
+                or seen
+                or self.db.execute("SELECT 1 FROM seen WHERE id=?", (identifier,)).fetchone()
+            ):
+                self.duplicates += 1
+            else:
+                unique[identifier] = event
+        self.db.executemany("INSERT INTO seen VALUES (?)", ((key,) for key in unique))
+        self.db.commit()
+        self.processed_ids = sorted(set(self.processed_ids).union(unique))[-self.history_limit :]
+        return list(unique.values())
 
-    # Extrae los IDs del lote actual para validación masiva
-    batch_ids = np.array([e['event_id'] for e in batch], dtype=object)
-    unique_batch = []
-    new_ids_to_add = []
+    @staticmethod
+    def sort_batch(batch, key="event_time", reverse=False):
+        return sorted(batch, key=lambda event: event[key], reverse=reverse)
 
-    if len(self.processed_ids) == 0:
-      # Si es el primer lote, registra todos los elementos únicos iniciales
-      for event in batch:
-        e_id = event['event_id']
-        if e_id not in new_ids_to_add:
-          unique_batch.append(event)
-          new_ids_to_add.append(e_id)
-      self.processed_ids = np.array(sorted(new_ids_to_add), dtype=object)
-      return unique_batch
-
-    # Búsqueda Binaria vectorizada en C usando np.searchsorted -> O(log N)
-    idxs = np.searchsorted(self.processed_ids, batch_ids)
-    idxs = np.clip(idxs, 0, len(self.processed_ids) - 1)
-    is_duplicate = self.processed_ids[idxs] == batch_ids
-
-    seen_in_batch = set()
-    for event, dup in zip(batch, is_duplicate):
-      e_id = event['event_id']
-      # Filtra duplicados históricos y duplicados internos del mismo lote
-      if not dup and e_id not in seen_in_batch:
-        unique_batch.append(event)
-        seen_in_batch.add(e_id)
-        new_ids_to_add.append(e_id)
-
-    # Actualiza el histórico ordenado combinando nuevos registros únicos
-    if new_ids_to_add:
-      self.processed_ids = np.unique(
-          np.concatenate([self.processed_ids, np.array(new_ids_to_add)])
-      )
-    return unique_batch
+    def close(self):
+        self.db.close()

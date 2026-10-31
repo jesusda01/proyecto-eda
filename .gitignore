@@ -5,4 +5,21 @@ __pycache__/
 
 # Archivos de datos pesados (CSV original y Parquets grandes)
 2019-Nov.csv
+2019-Oct.csv
+*.csv
 data/
+tmp/
+output/results/
+output/benchmarks_smoke/
+
+# Temporales de edición y artefactos locales
+.chart-data-*/
+~$*
+*.tmp
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+output/notebook_runs/
+output/presentations/
+output/pdf/
+.pytest_cache/
+.ruff_cache/

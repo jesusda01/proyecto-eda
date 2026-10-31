@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+  <title>EDA · Flujo en vivo</title
+  ><link rel="stylesheet" href="/dashboard.css" />
+
+  <header>
+    <div>
+      <div class="eyebrow">ESTRUCTURAS DE DATOS Y ALGORITMOS</div>
+      <h1>El pipeline, por dentro.</h1>
+      <p>
+        Ejecución real de <code>main.py</code> · procesamiento por microlotes
+      </p>
+    </div>
+    <div class="toolbar">
+      <label class="muted"
+        >Pausa visual
+        <select id="delay">
+          <option value="0" selected>Sin pausa</option>
+          <option value="0.8">0,8 s / etapa</option>
+          <option value="2">2 s / etapa</option>
+        </select></label
+      ><button class="primary" id="run">Ejecutar pipeline</button>
+    </div>
+  </header>
+  <div class="toolbar">
+    <span id="status">Esperando ejecución</span
+    ><span class="muted" id="progress">0 / 10 etapas</span>
+  </div>
+  <div class="layout">
+    <section class="panel map">
+      <svg id="edges" viewBox="0 0 1000 625" preserveAspectRatio="none"></svg>
+      <div class="nodes" id="nodes"></div>
+      <div class="legend">
+        <span>● Verde: ejecución activa</span
+        ><span>— Línea: entrada de datos</span>
+      </div>
+    </section>
+    <aside class="detail">
+      <section class="panel">
+        <div class="eyebrow" id="number">INSPECCIONAR</div>
+        <h2 id="title">Selecciona una etapa</h2>
+        <p id="description"></p>
+        <p class="muted" id="timing"></p>
+        <div class="tabs">
+          <button id="input">Entrada</button
+          ><button id="output">Resultado</button>
+        </div>
+        <pre id="data">Ejecuta el pipeline para ver datos reales.</pre>
+      </section>
+      <p class="notice">
+        Las etapas 3–9 reciben el lote priorizado. Las líneas muestran esa
+        dependencia; el orden de ejecución sigue siendo 0 → 9. Las partículas
+        señalan la etapa activa, no eventos individuales.
+      </p>
+      <section class="panel">
+        <h2>Consola en vivo</h2>
+        <pre id="logs">Sin actividad.</pre>
+      </section>
+    </aside>
+  </div>
+  <script src="/dashboard.js"></script>
+  <script src="/dashboard-popover.js"></script>
+</html>

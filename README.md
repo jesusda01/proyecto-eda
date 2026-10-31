@@ -1,54 +1,92 @@
-# Proyecto Final - Estructuras de Datos y Algoritmos (EDA)
+# Pipeline de comercio electrónico
 
-Pipeline de procesamiento, indexación y análisis de alto rendimiento para datos masivos e-commerce optimizado en memoria RAM mediante algoritmos avanzados y estructuras de datos eficientes.
+Estructuras de Datos y Algoritmos · Maestría en Ciencia de Datos e Inteligencia Artificial · **UTEC 2026-2**
 
----
+Procesa eventos de navegación y compra en microlotes a través de diez etapas. Mantiene índices entre lotes y produce recomendaciones, alertas verificadas, autocompletado y rankings. El visor web muestra las entradas y salidas de cada etapa durante la ejecución.
 
-## 🛠️ Tecnologías y Herramientas Utilizadas
+[Informe PDF](docs/Proyecto_Final_Grupo4.pdf) · [Presentación](docs/Presentacion_Grupo4.pptx) · [Guía técnica](docs/GUIA_TECNICA.md)
 
-- **Lenguaje:** Python 3.x
-- **Formato de Almacenamiento:** Apache Parquet / CSV
-- **Procesamiento y Álgebra Lineal:** NumPy, pandas
-- **Búsqueda Vectorial y Grafos:** NetworkX, HNSWlib, Datasketch
-- **Visualización y Cuadernos:** Jupyter Notebooks, Matplotlib
+![Visor del pipeline durante una ejecución real: etapas, flujo de datos, entrada de la etapa activa y consola.](docs/images/frontend.png)
 
----
+*Visor local con pausa de 0,8 s por etapa. Las partículas indican la etapa activa; el panel permite inspeccionar sus datos.*
 
-## 📋 Arquitectura del Pipeline y Responsables por Etapa
+## Instalación y ejecución
 
-A continuación se detalla la distribución de responsabilidades por integrante, de acuerdo a la arquitectura del pipeline de 10 etapas (Etapas 0 a 9):
+Requiere Python 3.12 o superior, salvo 3.14.1 por una restricción de NetworkX. En PowerShell, desde la raíz:
 
-| Etapa | Nombre de la Etapa | Estructuras de Datos / Algoritmos Aplicados | Responsable Principal |
-| :---: | :--- | :--- | :--- |
-| **0** | **Ingesta & Buffer de Memoria** | Circular Queue / Ring Buffer | Jesús Delgado |
-| **1** | **Preprocesamiento por Lotes** | Timsort / MergeSort ($O(N \log N)$), Búsqueda Binaria en C | Jesús Delgado |
-| **2** | **Cola con Prioridades** | MinHeap / Binary Heap ($O(\log N)$) | Jesús Delgado |
-| **3** | **Almacenamiento & Lookup Caché** | Tabla Hash $O(1)$ + Caché LRU (`OrderedDict`) | Erick Poma |
-| **4** | **Indexación Principal** | Árbol B+ (B+ Tree) | Erick Poma |
-| **5** | **Índice Multidimensional** | Árbol k-d (k-d Tree) | Mentor Naquiche |
-| **6** | **Filtrado Probabilístico** | Filtro de Bloom & Count-Min Sketch | Mentor Naquiche |
-| **7** | **Similitud Aproximada** | HNSW (Hierarchical Navigable Small World) & MinHash LSH | Guillermo Calderón |
-| **8** | **Grafo de Dominio** | Redes de Recomendación (Grafos con NetworkX / Dijkstra / PageRank) | Guillermo Calderón |
-| **9** | **Servicio & Visualización** | Árbol Trie (Autocompletado) & Top-K Analytics | Guillermo Calderón |
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
 
----
+Descarga el CSV de [eCommerce behavior data](https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store), guárdalo en `data/raw/` y prepara los datos. También puedes indicar otra ruta con `--csv`:
 
-## 👥 Tabla de Roles y Contribución Individual
+```powershell
+python -m src.convert_to_parquet --csv data/raw/2019-Nov.csv --rows 1000
+python main.py
+```
 
-| Integrante | Rol / Etapas Asignadas | Aporte Concreto en el Proyecto |
-| :--- | :--- | :--- |
-| **Jesús Delgado** | Responsable Etapas 0, 1 y 2 | Implementación del Buffer Circular de Ingesta, optimización de limpieza de duplicados por lotes con Timsort/Búsqueda Binaria en C/NumPy, y la Cola de Prioridades basada en MinHeap para la criticidad de eventos. |
-| **Erick Poma** | Responsable Etapas 3 y 4 | Desarrollo del almacenamiento primario en Tabla Hash acoplado a un Caché LRU, e implementación de la indexación de búsquedas por rango utilizando Árboles B+. |
-| **Mentor Naquiche** | Responsable Etapas 5 y 6 | Construcción del índice multidimensional k-d Tree para consultas espaciales/características y de los filtros probabilísticos (Filtro de Bloom y Count-Min Sketch) para detección de frecuencia y pertenencia. |
-| **Guillermo Calderón** | Responsable Etapas 7, 8 y 9 | Implementación de algoritmos de similitud aproximada (HNSW y MinHash LSH), modelado de la red de recomendación basada en Grafos, y desarrollo del Árbol Trie para autocompletado y métricas Top-K. |
+Abre **http://127.0.0.1:8765**. Selecciona **0,8 s/etapa** y pulsa **Ejecutar pipeline** para seguir el flujo. **Detener** interrumpe el procesamiento; `Ctrl+C` cierra el servidor. Cada ejecución guarda su salida en `output/results/last_pipeline.json`.
 
----
+Por defecto se leen los 1.000 eventos completos en lotes de 500 y se añaden ocho eventos simulados identificados con `is_simulated`, para demostrar co-compra y alertas. Para procesar solo el histórico, sin web:
 
-## 🚀 Instrucciones de Ejecución
+```powershell
+python main.py --sin-visor --sin-escenario
+```
 
-### 1. Requisitos Previos e Instalación de Dependencias
+## Arquitectura
 
-Asegúrate de contar con Python 3.10+ instalado. Activa tu entorno virtual y ejecuta:
+![Arquitectura de las diez etapas del pipeline, con flujo secuencial, estado en disco, índices en memoria y servicio de resultados.](docs/images/pipeline_architecture.svg)
 
-```bash
-pip install -r requirements.txt
+El motor ejecuta las etapas de **0 a 9** por cada lote. Las colas entregan trabajo pendiente; los índices conservan información para consultas posteriores. Los eventos que requieren revisión se guardan y los aceptados actualizan similitud y co-compra. [Abrir diagrama en alta resolución](docs/images/pipeline_architecture.png).
+
+## Notebooks
+
+En VS Code selecciona el kernel **Python de `.venv`** y ejecuta las celdas en orden.
+
+| Notebook | Para qué sirve |
+| --- | --- |
+| [01 · Demostración del pipeline](notebooks/01_pipeline_demo.ipynb) | Ejecuta el sistema; permite elegir lote y etapa, inspeccionar datos y consultar recomendaciones y alertas. |
+| [02 · Evaluación experimental](notebooks/02_benchmarks.ipynb) | Presenta tiempos, memoria, calidad y escalabilidad de los resultados guardados, con tablas y gráficos comparativos. |
+
+## Experimentos
+
+La preparación de 10M genera también los cortes de 1K, 10K, 100K y 1M. Los CSV y Parquet permanecen fuera de Git.
+
+```powershell
+python -m src.convert_to_parquet --csv data/raw/2019-Nov.csv --rows 10000000
+python benchmarks.py --sizes 1K 10K 100K 1M 10M --max-entities 2000
+python -m unittest discover -s tests -v
+```
+
+Los resultados incluidos contienen **100 repeticiones en 1K** y una exploración de las escalas mayores con **una repetición y poblaciones analíticas acotadas**. Esta última no acredita una evaluación completa de todas las estructuras con 10M elementos. El notebook muestra los tamaños efectivos y las limitaciones. El benchmark mide sin las pausas del visor.
+
+## Estructura y entregables
+
+```text
+main.py                 Entrada del sistema y del visor
+benchmarks.py           Experimentos por estructura y familia
+requirements.txt        Dependencias del sistema y los notebooks
+src/                    Orquestación, lectura y diez etapas
+web/                    Servidor local y frontend en static/
+notebooks/              Demostración y análisis experimental
+tests/                  Pruebas de estructuras, integración y servidor
+docs/                   Informe PDF, presentación, diagrama y guía técnica
+output/benchmarks/      Mediciones de 1K y gráficos
+output/escalabilidad/    Exploración de las escalas mayores
+data/                   Datos y bases locales, excluidos de Git
+```
+
+La [guía técnica](docs/GUIA_TECNICA.md) desarrolla los contratos entre etapas, las estructuras seleccionadas, la metodología experimental y las referencias bibliográficas.
+
+## Responsabilidades del equipo
+
+| Integrante | Etapas | Aporte asignado |
+| --- | --- | --- |
+| Jesús Ricardo Delgado Alvarado | 0, 1, 2 | Ingesta, validación, deduplicación y prioridades |
+| Erik Rogers Poma García | 3, 4 | Almacenamiento, caché LRU e índice B+ persistente |
+| Mentor Alexis Naquiche Ventura | 5, 6 | KD-Tree, referencia exacta y filtrado probabilístico |
+| Guillermo Diego Calderón Canchanya | 7, 8, 9 | Similitud aproximada, grafo y servicio de resultados |
+
+Docente: Heider Sánchez Enríquez.

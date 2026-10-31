@@ -1,59 +1,33 @@
+"""Urgencia de negocio, fecha y desempate estable por orden de llegada."""
+
 import heapq
-from itertools import count
-
-# Contador global para asegurar estabilidad estricta
-tie_breaker = count()
+import itertools
 
 
-class EventoPriorizado:
-  """Clase auxiliar para definir la jerarquía de prioridad en la MinHeap
-
-  con clave compuesta: (prioridad, timestamp, contador).
-  """
-
-  def __init__(self, priority, timestamp, count_id, event):
-    self.priority = priority
-    self.timestamp = timestamp
-    self.count_id = count_id
-    self.event = event
-
-  def __lt__(self, other):
-    # 1. Compara por prioridad (menor número = mayor prioridad)
-    if self.priority != other.priority:
-      return self.priority < other.priority
-
-    # 2. Si empatan en prioridad, compara por marca de tiempo (FIFO cronológico)
-    if str(self.timestamp) != str(other.timestamp):
-      return str(self.timestamp) < str(other.timestamp)
-
-    # 3. Si empatan en prioridad y timestamp, desempata con el contador de llegada
-    return self.count_id < other.count_id
+def event_priority(event):
+    if event.get("alert_type") == "payment_alert" or event.get("event_type") == "payment_alert":
+        return 0
+    if event.get("event_type") in ("purchase", "refund"):
+        return {"express": 1, "standard": 2, "scheduled": 3}.get(event.get("order_urgency"), 2)
+    return {"cart": 4, "search": 5, "review": 5, "view": 6}.get(event.get("event_type"), 6)
 
 
 class ColaPrioridadesHeap:
-  """Etapa 2: Cola con prioridades
+    def __init__(self):
+        self.heap, self.counter = [], itertools.count()
 
-  Estructura: MinHeap (Binary Heap) con costo O(log N) para inserción y extracción.
-  """
+    def push(self, event):
+        priority = event_priority(event)
+        event["priority"] = priority
+        heapq.heappush(
+            self.heap, (priority, str(event.get("event_time", "")), next(self.counter), event)
+        )
 
-  def __init__(self):
-    self.heap = []
+    def pop(self):
+        return heapq.heappop(self.heap)[3] if self.heap else None
 
-  def push(self, event):
-    priority = event.get('priority', 5)
-    timestamp = event.get('event_time', '')
-    # Se añade el contador único para garantizar estabilidad absoluta
-    item = EventoPriorizado(priority, timestamp, next(tie_breaker), event)
-    heapq.heappush(self.heap, item)
+    def is_empty(self):
+        return not self.heap
 
-  def pop(self):
-    if not self.is_empty():
-      item = heapq.heappop(self.heap)
-      return item.event
-    return None
-
-  def is_empty(self):
-    return len(self.heap) == 0
-
-  def size(self):
-    return len(self.heap)
+    def size(self):
+        return len(self.heap)

@@ -1,164 +1,114 @@
-import os
-import random
-import time
-import uuid
+"""Preparación incremental reproducible, sin acumular el CSV completo."""
+
+import argparse
+from pathlib import Path
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+from .stream_reader import stable_id
 
 
 def process_csv_to_parquet(
-    csv_input_path="2019-Nov.csv",
-    output_dir="data",
-    target_10m=10_000_000,
+    csv_input_path="data/raw/2019-Nov.csv", output_dir="data", target_10m=10_000_000, chunk_size=50000
 ):
-  """Lee el CSV original pesado (o genera sintético si no existe), inyecta los atributos
+    """Escribe cortes con tamaños honestos; nunca inventa un CSV ausente.
 
-  del pipeline (prioridades, IPs, flags de fraude) y exporta los 5 cortes Parquet (1K, 10K, 100K, 1M, 10M).
-  """
-  os.makedirs(output_dir, exist_ok=True)
-  parquet_10m_path = os.path.join(output_dir, "ecommerce_10M.parquet")
-
-  start_time = time.time()
-  priorities = {
-      "payment_alert": 1,
-      "refund": 2,
-      "purchase": 3,
-      "cart": 4,
-      "view": 5,
-  }
-
-  if os.path.exists(csv_input_path):
-    print(
-        f"\n⏳ Leyendo y procesando '{csv_input_path}' hacia Parquet"
-        f" ({target_10m:,} filas)..."
+    No se modifica event_type ni se etiqueta fraude al azar. El escenario
+    sintético demostrativo se añade por separado al ejecutar el pipeline.
+    """
+    path, output = Path(csv_input_path), Path(output_dir)
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"CSV no encontrado: {path}. No se generarán millones de filas automáticamente."
+        )
+    if target_10m < 1 or chunk_size < 1:
+        raise ValueError("Objetivo y tamaño de bloque deben ser positivos.")
+    output.mkdir(parents=True, exist_ok=True)
+    sizes = {
+        name: n
+        for name, n in [
+            ("1K", 1000),
+            ("10K", 10000),
+            ("100K", 100000),
+            ("1M", 1000000),
+            ("10M", 10000000),
+        ]
+        if n <= target_10m
+    }
+    if target_10m not in sizes.values():
+        sizes[str(target_10m)] = target_10m
+    writers, counts = {}, {name: 0 for name in sizes}
+    total = 0
+    reader = pd.read_csv(
+        path,
+        chunksize=chunk_size,
+        dtype={
+            "user_id": "string",
+            "product_id": "string",
+            "category_id": "string",
+            "price": "float64",
+        },
     )
-    chunk_size = 1_000_000
-    total_processed = 0
-    processed_chunks = []
-
-    for chunk in pd.read_csv(csv_input_path, chunksize=chunk_size):
-      needed = min(len(chunk), target_10m - total_processed)
-      df_block = chunk.iloc[:needed].copy()
-
-      df_block["event_id"] = [
-          str(uuid.uuid4())[:8] for _ in range(len(df_block))
-      ]
-      is_fraud_list = [random.random() < 0.015 for _ in range(len(df_block))]
-      df_block["is_fraud"] = is_fraud_list
-
-      ip_list = []
-      event_types = []
-      priority_list = []
-
-      for _, row in df_block.iterrows():
-        if row["is_fraud"]:
-          evt = "payment_alert"
-          ip = random.choice(["10.0.0.66", "10.0.0.99"])
-        else:
-          evt = row["event_type"] if pd.notna(row["event_type"]) else "view"
-          if evt == "payment_alert":
-            evt = "view"
-          ip = f"192.168.{random.randint(1, 50)}.{random.randint(1, 254)}"
-
-        prio = priorities.get(evt, 5)
-        event_types.append(evt)
-        ip_list.append(ip)
-        priority_list.append(prio)
-
-      df_block["event_type"] = event_types
-      df_block["ip_address"] = ip_list
-      df_block["priority"] = priority_list
-
-      processed_chunks.append(df_block)
-      total_processed += len(df_block)
-      print(f"  -> {total_processed:,} / {target_10m:,} filas procesadas...")
-
-      if total_processed >= target_10m:
-        break
-
-    df_10m = pd.concat(processed_chunks, ignore_index=True)
-  else:
-    print(
-        f"\n⚠️ No se encontró '{csv_input_path}'. Generando sintéticamente"
-        f" {target_10m:,} filas..."
-    )
-    categories = [
-        "electronics.smartphone",
-        "electronics.audio",
-        "computers.laptop",
-        "apparel.shoes",
-        "home.appliances",
-        "sports.fitness",
-    ]
-    products = [
-        {
-            "product_id": p_id,
-            "category_code": random.choice(categories),
-            "brand": f"Brand_{random.randint(1, 100)}",
-            "price": round(random.uniform(15.0, 2000.0), 2),
-        }
-        for p_id in range(1000, 21000)
-    ]
-    df_products = pd.DataFrame(products)
-
-    batch_size = 1_000_000
-    chunks = []
-    for b in range(target_10m // batch_size):
-      records = []
-      for _ in range(batch_size):
-        prod = df_products.sample(1).iloc[0]
-        is_fraud = random.random() < 0.015
-        if is_fraud:
-          evt = "payment_alert"
-          ip = random.choice(["10.0.0.66", "10.0.0.99"])
-        else:
-          evt = random.choices(
-              ["view", "cart", "purchase", "refund"], weights=[65, 20, 12, 3]
-          )[0]
-          ip = f"192.168.{random.randint(1, 50)}.{random.randint(1, 254)}"
-
-        records.append({
-            "event_id": str(uuid.uuid4())[:8],
-            "event_time": pd.Timestamp.now()
-            - pd.Timedelta(seconds=random.randint(0, 3000000)),
-            "event_type": evt,
-            "product_id": int(prod["product_id"]),
-            "category_code": prod["category_code"],
-            "brand": prod["brand"],
-            "price": float(prod["price"]),
-            "user_id": f"user_{random.randint(1000, 50000)}",
-            "user_session": str(uuid.uuid4())[:12],
-            "ip_address": ip,
-            "priority": priorities[evt],
-            "is_fraud": is_fraud,
-        })
-      df_batch = pd.DataFrame(records)
-      chunks.append(df_batch)
-      print(f"  -> {(b + 1) * batch_size:,} / {target_10m:,} filas generadas...")
-
-    df_10m = pd.concat(chunks, ignore_index=True)
-
-  # Guardar archivo maestro de 10M
-  df_10m.to_parquet(parquet_10m_path, compression="snappy", index=False)
-  elapsed = round(time.time() - start_time, 2)
-  size_mb = round(os.path.getsize(parquet_10m_path) / (1024 * 1024), 2)
-  print(
-      f"\n✅ Archivo maestro 'ecommerce_10M.parquet' creado ({size_mb} MB) en"
-      f" {elapsed}s"
-  )
-
-  # Exportar cortes (1K, 10K, 100K, 1M) asegurando escritura completa
-  cuts = {"1K": 1_000, "10K": 10_000, "100K": 100_000, "1M": 1_000_000}
-  print("\n✂️ Exportando cortes recortados en Parquet (1K, 10K, 100K, 1M)...")
-
-  for name, nrows in cuts.items():
-    cut_path = os.path.join(output_dir, f"ecommerce_{name}.parquet")
-    df_cut = df_10m.iloc[:nrows].copy()
-    df_cut.to_parquet(cut_path, compression="snappy", index=False)
-    cut_mb = round(os.path.getsize(cut_path) / (1024 * 1024), 2)
-    print(f"  -> Archivo '{cut_path}' guardado ({nrows:,} filas, {cut_mb} MB)")
-
-  print("\n🎉 ¡Conversión completada con éxito!")
+    try:
+        for block in reader:
+            required = {"event_time", "event_type", "product_id", "user_id", "price"}
+            if not required <= set(block):
+                raise ValueError(f"Faltan columnas: {sorted(required-set(block))}")
+            block = block.iloc[: max(0, target_10m - total)].copy()
+            if block.empty:
+                break
+            block["event_id"] = [stable_id(path.name, total + i) for i in range(len(block))]
+            block["source"] = path.name
+            block["source_row"] = range(total, total + len(block))
+            block["is_simulated"] = False
+            block["event_type_original"] = block["event_type"]
+            # Campos opcionales con tipos constantes entre row groups.
+            for field in ("category_code", "brand", "user_session"):
+                if field not in block:
+                    block[field] = ""
+                block[field] = block[field].fillna("").astype(str)
+            block["event_time"] = pd.to_datetime(
+                block["event_time"], utc=True, errors="coerce"
+            ).astype(str)
+            table = pa.Table.from_pandas(block, preserve_index=False)
+            for name, maximum in sizes.items():
+                take = min(len(block), maximum - counts[name])
+                if take <= 0:
+                    continue
+                if name not in writers:
+                    writers[name] = pq.ParquetWriter(
+                        output / f"ecommerce_{name}.parquet", table.schema, compression="snappy"
+                    )
+                writers[name].write_table(table.slice(0, take))
+                counts[name] += take
+            total += len(block)
+            print(
+                f"Preparadas {total:,} / {target_10m:,} filas; sin acumular bloques en RAM.",
+                flush=True,
+            )
+            if total >= target_10m:
+                break
+    finally:
+        reader.close()
+        for writer in writers.values():
+            writer.close()
+    for name, count in counts.items():
+        if count and count != sizes[name]:
+            # El nombre no debe prometer una cardinalidad que el CSV no contiene.
+            original = output / f"ecommerce_{name}.parquet"
+            honest = output / f"ecommerce_{name}_incompleto_{count}.parquet"
+            original.replace(honest)
+    if total < target_10m:
+        print(
+            f"El CSV terminó en {total:,} filas. Los cortes incompletos se identifican en su nombre."
+        )
+    return counts
 
 
 if __name__ == "__main__":
-  process_csv_to_parquet()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--csv", default="data/raw/2019-Nov.csv")
+    parser.add_argument("--output", default="data")
+    parser.add_argument("--rows", type=int, default=1000)
+    args = parser.parse_args()
+    process_csv_to_parquet(args.csv, args.output, args.rows)

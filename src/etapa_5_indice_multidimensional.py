@@ -1,49 +1,82 @@
+"""KD-Tree con poda y fuerza bruta exacta para comparar resultados."""
+
+from dataclasses import dataclass
+import heapq
 import numpy as np
 
 
+@dataclass
 class KDTreeNode:
-  """Nodo constitutivo del KD-Tree para particionamiento espacial."""
-
-  def __init__(self, point, data, left=None, right=None):
-    self.point = point  # Coordenadas multidimensionales (ej. [precio, cantidad])
-    self.data = data  # Datos asociados al punto
-    self.left = left  # Subárbol izquierdo (menores en el eje actual)
-    self.right = right  # Subárbol derecho (mayores en el eje actual)
+    point: tuple
+    data: object
+    ordinal: int
+    axis: int
+    left: object = None
+    right: object = None
 
 
 class IndiceMultidimensionalKDTree:
-  """Etapa 5: Índice Multidimensional y KNN Exacto
+    def __init__(self, points, data_list):
+        if len(points) != len(data_list):
+            raise ValueError("Cada punto debe tener un identificador.")
+        self.dim = len(points[0]) if len(points) else 0
+        items = []
+        for i, (pt, identifier) in enumerate(zip(points, data_list)):
+            if len(pt) != self.dim or not np.isfinite(pt).all() or not self.dim:
+                raise ValueError("Coordenadas incompatibles o no finitas.")
+            items.append((tuple(pt), identifier, i))
+        self.root = self._build(items, 0)
 
-  Estructuras: KD-Tree (O(log N)) + KNN Exacto (Línea base O(N)).
-  """
+    def _build(self, items, depth):
+        if not items:
+            return None
+        axis = depth % self.dim
+        items.sort(key=lambda item: (item[0][axis], item[2]))
+        mid = len(items) // 2
+        pt, identifier, ordinal = items[mid]
+        return KDTreeNode(
+            pt,
+            identifier,
+            ordinal,
+            axis,
+            self._build(items[:mid], depth + 1),
+            self._build(items[mid + 1 :], depth + 1),
+        )
 
-  def __init__(self, points, data_list):
-    k = len(points[0]) if points else 2
-    # Construye el árbol particionando recursivamente por ejes alternos
-    self.root = self._build_tree(
-        list(zip(points, data_list)), depth=0, k=k
-    )
+    def query(self, point, k_neighbors=3, exclude_id=None):
+        """Exacto; la poda pierde eficacia en dimensiones elevadas."""
+        if k_neighbors < 1 or self.root is None:
+            return []
+        if len(point) != self.dim or not np.isfinite(point).all():
+            raise ValueError("Consulta inválida.")
+        heap = []
 
-  def _build_tree(self, points_data, depth, k):
-    if not points_data:
-      return None
-    # Selecciona el eje actual en función de la profundidad del árbol (rotación de dimensiones)
-    axis = depth % k
-    points_data.sort(key=lambda x: x[0][axis])
-    mid = len(points_data) // 2
-    return KDTreeNode(
-        point=points_data[mid][0],
-        data=points_data[mid][1],
-        left=self._build_tree(points_data[:mid], depth + 1, k),
-        right=self._build_tree(points_data[mid + 1 :], depth + 1, k),
-    )
+        def visit(node):
+            if node is None:
+                return
+            distance = sum((a - b) ** 2 for a, b in zip(point, node.point))
+            if node.data != exclude_id:
+                item = (-distance, -node.ordinal, node.data)
+                if len(heap) < k_neighbors:
+                    heapq.heappush(heap, item)
+                elif item[:2] > heap[0][:2]:
+                    heapq.heapreplace(heap, item)
+            delta = point[node.axis] - node.point[node.axis]
+            near, far = (node.left, node.right) if delta < 0 else (node.right, node.left)
+            visit(near)
+            if len(heap) < k_neighbors or delta**2 <= -heap[0][0]:
+                visit(far)
 
-  def knn_exact_baseline(self, query_point, points, data_list, k_neighbors=3):
-    distances = []
-    # Línea base: Calcula la distancia euclidiana contra todos los registros -> O(N)
-    for pt, data in zip(points, data_list):
-      dist = np.linalg.norm(np.array(pt) - np.array(query_point))
-      distances.append((dist, data))
-    # Ordena por distancia ascendente para extraer los K vecinos más cercanos
-    distances.sort(key=lambda x: x[0])
-    return [item[1] for item in distances[:k_neighbors]]
+        visit(self.root)
+        return [item[2] for item in sorted(heap, key=lambda x: (-x[0], -x[1]))]
+
+    @staticmethod
+    def knn_exact_baseline(query_point, points, data_list, k_neighbors=3, exclude_id=None):
+        if len(points) != len(data_list):
+            raise ValueError("Puntos e IDs desalineados.")
+        scored = [
+            (sum((a - b) ** 2 for a, b in zip(query_point, pt)), i, identifier)
+            for i, (pt, identifier) in enumerate(zip(points, data_list))
+            if identifier != exclude_id
+        ]
+        return [identifier for _, _, identifier in sorted(scored)[: max(0, k_neighbors)]]
